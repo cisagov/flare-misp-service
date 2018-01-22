@@ -1,0 +1,50 @@
+This application is a
+
+
+To run the application:
+
+
+mvn spring-boot:run
+
+
+FLARE to XML:
+
+Create destination directory (/home/flaredev/flare/stix3)
+Start application: mvn spring-boot:run
+Access URL: http://localhost:8080/misptransclient?processType=xmlOutput
+
+FLARE to MISP:
+
+Start application: mvn spring-boot:run
+Access URL: http://localhost:8080/misptransclient?processType=stixToMisp
+
+This service was constructed based on an example which can be found at theis URL:
+
+https://spring.io/guides/gs/rest-service/
+
+Build an executable JAR
+
+You can run the application from the command line with Gradle or Maven. 
+Or you can build a single executable JAR file that contains all the necessary 
+dependencies, classes, and resources, and run that. This makes it easy to ship, 
+version, and deploy the service as an application throughout the development 
+lifecycle, across different environments, and so forth.
+
+
+
+
+If you are using Maven, you can run the application using 
+
+./mvnw spring-boot:run. 
+
+
+
+
+Or you can build the JAR file with 
+
+./mvnw clean package. 
+
+Then you can run the JAR file:
+
+java -jar target/mtc-rest-service-0.1.0.jar
+
