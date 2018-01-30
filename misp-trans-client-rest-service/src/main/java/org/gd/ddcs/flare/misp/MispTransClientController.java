@@ -34,17 +34,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.gd.ddcs.flare.misp.Application;
-
+import org.quartz.CronScheduleBuilder;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SimpleScheduleBuilder;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger; 
 import org.slf4j.LoggerFactory; 
-
-
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.PropertiesConfigurationLayout;
-
-
 
 /*
  * This controller pulls events from a FLARE/taxii server and pushes them out to a MISP server using the
@@ -63,8 +66,9 @@ public class MispTransClientController {
 
     private final AtomicLong counter = new AtomicLong();
     private final Logger log = LoggerFactory.getLogger(MispTransClientController.class);
-    
     boolean resourcesAvailable = false;
+    String beginTimestamp = null;
+    String endTimestamp = null;
    
     /*
      * Sample URLs:
@@ -93,7 +97,6 @@ public class MispTransClientController {
     	boolean taxiiServerNotResponding = false;
     	boolean ioError = false;
     	
-    	
     	try {
 	    	log.info("Processing events...");
 	    	
@@ -103,16 +106,10 @@ public class MispTransClientController {
 	    		if("".equals(collection)) {
 	    			collection = Config.getProperty("stixtransclient.source.collection");	    	    	
 	    		}
-	    		
-	    		log.info("Calling stixtransclient.py" + 
-	    		         " with args:" +
-	    				 " processType: " + processType +
-	    		         " collection: " + collection);
-	    		
+	    			    		
 	    		//Construct command
 		    	String cmd = getCommandStr(processType, collection);
-		    	log.info("cmd: " + cmd);;
-
+		    	//log.info("cmd: " + cmd);;
 		    	
 		    	Process p = Runtime.getRuntime().exec(cmd);
 	            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -135,18 +132,10 @@ public class MispTransClientController {
 			    		taxiiServerNotResponding = true;
 		                hasError = true;
 	        	    }
-//	        	    else if (s.equals("IOError: [Errno 13] Permission denied")) {
-//		    			errorAL.add(s);
-//			    		log.error(s);
-//			    		ioError = true;
-//		                hasError = true;
-//	        	    }
-	        	    //else if ( s.toLowerCase().indexOf("error") >=0)
 		        	else if ( s.indexOf("ERROR") >=0 ||
 		        			  s.indexOf("Error") >=0)
 	        	    {
-		        	    log.info("Ksc Error String: " +  s);
-		        		
+		        	    log.info("Error String: " +  s);
 		    			errorAL.add(s);
 			    		log.error(s);
 		                hasError = true;
@@ -157,9 +146,11 @@ public class MispTransClientController {
 		                hasError = true;
 		    		}
 		    		else {
-		    			warningAL.add(s);
-			    		log.info("WARNING: " + s);
-		                hasWarning = true;
+		    			if(!suppressWarning(s)) {
+		    			  warningAL.add(s);
+			    		  log.info(s);
+		                  hasWarning = true;
+		    			}		                
 		    		}
 	           }
 		    	
@@ -171,11 +162,7 @@ public class MispTransClientController {
 		    	}
 		    	if(ioError) {
 		        	String destinationDirectory = Config.getProperty("stixtransclient.destination.directory");
-
 		    		detailedStatus = "Exception: IO Error.  Check log file.";
-		    		
-		    		//log.error
-		    		//stixtransclient.client.basedir
 		    	}
 		    	else if(hasError) {
 		    		String str = (String)errorAL.get(0);
@@ -188,13 +175,9 @@ public class MispTransClientController {
 		    		else if(str.indexOf("IOError") >=0) {
 		    			detail = "  Verify that stixtransclient.client.basedir is properly configured and readable.";
 		    		}
-	    		
-		    		
 
 		    		detailedStatus = "Exception: " + str + detail;
-		    		
 		    		log.error(detailedStatus);
-
 		    	}
 		    	else if(hasWarning) {
 		    		status = "Success";
@@ -210,7 +193,10 @@ public class MispTransClientController {
 	    	}
 	    	
 	    	log.info("Processing events: " + status);
-
+	    	
+	    	if("Success".equals(status)) {
+	    		persistTimestamps(processType, collection);
+	    	}
     	}
     	catch(IllegalArgumentException e) {
     		e.printStackTrace();
@@ -227,7 +213,10 @@ public class MispTransClientController {
         		            status,
         		            detailedStatus,
                             processType,
-                            collection);
+                            collection,
+                            this.getBeginTimestamp(),
+                            this.getEndTimestamp()
+        					);
     }
     
     private String getCommandStr(String processType, String collection)  {
@@ -258,12 +247,9 @@ public class MispTransClientController {
     	String mispUrl = Config.getProperty("stixtransclient.misp.url");
     	String mispKey = Config.getProperty("stixtransclient.misp.key");	
     	
-    	String beginTimeStamp = getBeginTimestamp(collection,processType);
-    	
- 
+    	setTimestamps(collection,processType);
+
     	String commandStr = "";
-    	
-    	log.info("processType: " + processType); 
 
     	if ( !validProcessTypes.contains(processType) )  {
     		throw new IllegalArgumentException("Invalid Process Type: " + processType);
@@ -287,7 +273,8 @@ public class MispTransClientController {
         			+ " --misp-url " + mispUrl
         			+ " --misp-key " + mispKey
         			+ " --collection " + sourceCollection
-        			+ " --begin-timestamp " + beginTimeStamp
+        			+ " --begin-timestamp " + this.getBeginTimestamp()
+        			+ " --end-timestamp " + this.getEndTimestamp()
         			;    		
     	}
     	else if("xmlOutput".equals(processType) ) {
@@ -309,7 +296,8 @@ public class MispTransClientController {
         			+ " --cert " + clientCert 
         			+ " --taxii " 
         			+ " --collection " + sourceCollection
-        			+ " --begin-timestamp " + beginTimeStamp
+        			+ " --begin-timestamp " + this.getBeginTimestamp()
+        			+ " --end-timestamp " + this.getEndTimestamp()
         			+ outputType + destinationDirectory;        		
         }
     	else {
@@ -364,13 +352,9 @@ public class MispTransClientController {
        
     	try 
     	{
-	    	log.info("calling disableSslVerification()");
 	    	disableSslVerification();
-	    	log.info("returned from calling disableSslVerification()");
-    	
 	    	url = Config.getProperty("stixtransclient.poll.baseurl");
 	    	responseCode = getResponseCode(url);
-	    	log.info("checkResources() url: " + url + " response: " + responseCode);
      	}
     	catch(Exception ex) {
     		ex.printStackTrace();
@@ -378,7 +362,7 @@ public class MispTransClientController {
       	
         return new HealthCheckResponse(resourceType, url, responseCode);
     }
-    
+      
     @RequestMapping("/checkMispStatus")
     public HealthCheckResponse checkMispStatus() {
     	int responseCode = 0;
@@ -390,7 +374,6 @@ public class MispTransClientController {
     	{
 	    	url = Config.getProperty("stixtransclient.misp.url");
 	    	responseCode = getResponseCode(url);
-	    	log.info("checkResources() url: " + url + " response: " + responseCode);
      	}
     	catch(Exception ex) {
     		ex.printStackTrace();
@@ -403,6 +386,34 @@ public class MispTransClientController {
     public void refreshConfig() {
     	Config.loadConfig();
     }
+    
+    @RequestMapping("/initQuartz")
+    public void initQuartz() {
+    	log.info("Initializing Quartz Jobs...");
+    	
+    	
+		try {
+			JobDetail job1 = JobBuilder.newJob(InitializeQuartzJob.class).withIdentity("initializeQuartzJob", "group1").build();
+
+			Trigger trigger1 = TriggerBuilder.newTrigger().withIdentity("simpleTrigger", "group1")
+					.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(2)).build();   
+			Scheduler scheduler1 = new StdSchedulerFactory().getScheduler(); 
+			scheduler1.start(); 
+			scheduler1.scheduleJob(job1, trigger1); 
+//			
+//			JobDetail job2 = JobBuilder.newJob(ByeJob.class).withIdentity("byeJob", "group2").build();
+//			Trigger trigger2 = TriggerBuilder.newTrigger().withIdentity("cronTrigger", "group2")
+//					.withSchedule(CronScheduleBuilder.cronSchedule("0/5 * * * * ?")).build();
+//			Scheduler scheduler2 = new StdSchedulerFactory().getScheduler();
+//			scheduler2.start(); 
+//			scheduler2.scheduleJob(job2, trigger2); 
+			}
+		catch(Exception e){ 
+			e.printStackTrace();
+		}
+    	
+    }
+    
     
     public boolean checkResources() {
     	int responseCode = 0;
@@ -506,23 +517,57 @@ public class MispTransClientController {
         return formatDateTime;
     }
     
-    private String getBeginTimestamp(String collection, String processType) {
+    private void setTimestamps(String collection, String processType) {
         final String epoch = "1970-01-01T00:00:00+00:00";
-        String beginTimestamp = Config.getProperty("stixtransclient.poll.timestamp" + "." + collection + "." + processType);
+
+        beginTimestamp = null;
+        endTimestamp = null;
+
+        //Refresh each time so that service does not need to be restarted to refresh the conf values
+        refreshConfig();
+        
+        String latestValFromConfig = Config.getProperty("stixtransclient.poll.endTimestamp" + "." + collection + "." + processType);
+        
+        beginTimestamp = latestValFromConfig;
+        
         String nexTimestamp = getTimestamp();
+        endTimestamp = nexTimestamp;
        
         if(beginTimestamp == null || "".equals(beginTimestamp)) {
         	beginTimestamp = epoch;
         }
-        
-        log.info("Collection: " + collection + " Process Type: " + processType + " beginTimestamp: " + beginTimestamp);
-        log.info("Collection: " + collection + " Process Type: " + processType + " nexTimestamp: " + nexTimestamp);
-        
+
+       log.info("Collection: " + collection + " Process Type: " + processType + " beginTimestamp: " + beginTimestamp + " endTimestamp: " + endTimestamp);
+    }
+    
+    private String getBeginTimestamp() {
+    	return this.beginTimestamp;
+    }
+    
+    private String getEndTimestamp() {
+    	return this.endTimestamp;
+    }
+    
+    private boolean suppressWarning(String inStr) {
+ 	   boolean returnVal=false;
+ 	   final String pythonWarning = "You're using python 2, it is strongly recommended to use python >=3.5"; 
+ 	   
+ 	   int val = inStr.indexOf(pythonWarning);
+ 	   
+ 	   if( inStr.indexOf(pythonWarning) >=0) {
+ 		   returnVal=true;
+ 	   }
+
+ 	   return returnVal;
+    }
+    
+    private void persistTimestamps(String processType, String collection) {
         //Write value of nexTimestamp to the Config file
-        Config.setProperty("stixtransclient.poll.timestamp" + "." + collection + "." + processType, nexTimestamp);
-        
-        return beginTimestamp;
-   }
+        log.info("persistTimestamps " + " beginTimestamp: " + beginTimestamp + " endTimestamp: " + endTimestamp);
+  	
+        Config.setProperty("stixtransclient.poll.beginTimestamp" + "." + collection + "." + processType, beginTimestamp);
+        Config.setProperty("stixtransclient.poll.endTimestamp" + "." + collection + "." + processType, endTimestamp);
+    }
 }
 
 /*

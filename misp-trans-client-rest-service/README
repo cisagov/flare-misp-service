@@ -1,11 +1,12 @@
-This application is a
-
+This application is a service that transfers Stix Events from a Stix Server to a Misp Server.
 
 To run the application:
 
-
 mvn spring-boot:run
 
+To Run Quartz job to periodically run the Misp Trans Client:
+
+http://localhost:8080/initQuartz
 
 FLARE to XML:
 
@@ -18,7 +19,7 @@ FLARE to MISP:
 Start application: mvn spring-boot:run
 Access URL: http://localhost:8080/misptransclient?processType=stixToMisp
 
-This service was constructed based on an example which can be found at theis URL:
+This service was constructed based on an example which can be found at this URL:
 
 https://spring.io/guides/gs/rest-service/
 
@@ -31,18 +32,14 @@ version, and deploy the service as an application throughout the development
 lifecycle, across different environments, and so forth.
 
 
-
-
 If you are using Maven, you can run the application using 
 
-./mvnw spring-boot:run. 
-
-
+mvn spring-boot:run. 
 
 
 Or you can build the JAR file with 
 
-./mvnw clean package. 
+mvn clean package. 
 
 Then you can run the JAR file:
 

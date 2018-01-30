@@ -7,17 +7,23 @@ public class MispTransClient {
     private final String detailedStatus;
     private final String processType;
     private final String collection;
+    private final String beginTimestamp;
+    private final String endTimestamp;
 
     public MispTransClient(long id, 
     		               String status,
     		               String detailedStatus,
     		               String processType, 
-    		               String collection) {
+    		               String collection,
+    		               String beginTimestamp,
+    		               String endTimestamp) {
         this.id = id;
         this.status = status;
         this.detailedStatus = detailedStatus;
         this.processType = processType;
         this.collection = collection;
+        this.beginTimestamp = beginTimestamp;
+        this.endTimestamp = endTimestamp;
     }
 
     public long getId() {
@@ -38,5 +44,13 @@ public class MispTransClient {
     
     public String getCollection() {
         return collection;
+    }
+    
+    public String getBeginTimestamp() {
+        return beginTimestamp;
+    }
+    
+    public String getEndTimeStamp() {
+        return endTimestamp;
     }
 }
