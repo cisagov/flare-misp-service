@@ -14,15 +14,19 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger; 
 import org.slf4j.LoggerFactory; 
 
+import org.quartz.DisallowConcurrentExecution;
 
+//@DisallowConcurrentExecution
+@DisallowConcurrentExecution
 public class InitializeQuartzJob implements Job
 {
     private final Logger log = LoggerFactory.getLogger(InitializeQuartzJob.class);
+	String urlStr = Config.getProperty("mtc.baseurl") + "?processType=" + Config.getProperty("mtc.processtype");
 
 	public void execute(JobExecutionContext context)
 	throws JobExecutionException {
 		try {
-			URL url = new URL("http://localhost:8080/misptransclient?processType=xmlOutput");
+			URL url = new URL(urlStr);
 			
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
@@ -37,7 +41,7 @@ public class InitializeQuartzJob implements Job
 				(conn.getInputStream())));
 
 			String output;
-			log.info("Output from Server .... \n");
+			//log.info("Output from Server .... \n");
 			while ((output = br.readLine()) != null) {
 				log.info(output);
 			}

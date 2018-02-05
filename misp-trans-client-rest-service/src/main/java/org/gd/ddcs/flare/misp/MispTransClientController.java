@@ -313,6 +313,8 @@ public class MispTransClientController {
     	
     	Properties prop = new Properties();
     	InputStream  input = null;
+    	//String qualifiedConfigPath = Config.getProperty("bin.filepath") + "/" + Config.getProperty("python.command");
+
       	
     	try {
     		input = new FileInputStream("config/config.properties");
@@ -537,7 +539,7 @@ public class MispTransClientController {
         	beginTimestamp = epoch;
         }
 
-       log.info("Collection: " + collection + " Process Type: " + processType + " beginTimestamp: " + beginTimestamp + " endTimestamp: " + endTimestamp);
+       //log.info("Collection: " + collection + " Process Type: " + processType + " beginTimestamp: " + beginTimestamp + " endTimestamp: " + endTimestamp);
     }
     
     private String getBeginTimestamp() {
