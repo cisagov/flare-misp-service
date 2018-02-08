@@ -33,6 +33,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.quartz.impl.matchers.GroupMatcher;
+import org.quartz.JobKey;
+import java.util.Date;
+import org.quartz.SchedulerException;
 import org.gd.ddcs.flare.misp.Application;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
@@ -40,6 +44,7 @@ import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
+import org.quartz.TriggerKey;
 import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger; 
@@ -313,8 +318,6 @@ public class MispTransClientController {
     	
     	Properties prop = new Properties();
     	InputStream  input = null;
-    	//String qualifiedConfigPath = Config.getProperty("bin.filepath") + "/" + Config.getProperty("python.command");
-
       	
     	try {
     		input = new FileInputStream("config/config.properties");
@@ -393,12 +396,27 @@ public class MispTransClientController {
     public void initQuartz() {
     	log.info("Initializing Quartz Jobs...");
     	
+    	String quartzFrequencyStr = Config.getProperty("mtc.quartz.frequency"); 
+    	int quartzFrequency = 2;
+    	
+    	if (quartzFrequencyStr == null  || "".equals(quartzFrequencyStr)) {
+    		log.info("quartzFrequencyStr is null");
+    	}
+    	else if ("".equals(quartzFrequencyStr)) {
+    		log.info("quartzFrequencyStr is blank");
+    	}
+    	else {
+    		log.info("quartzFrequencyStr equals " + quartzFrequencyStr);
+    		quartzFrequency = Integer.parseInt(quartzFrequencyStr);
+    	}
+
+		log.info("quartzFrequency = " + quartzFrequency);
     	
 		try {
 			JobDetail job1 = JobBuilder.newJob(InitializeQuartzJob.class).withIdentity("initializeQuartzJob", "group1").build();
 
 			Trigger trigger1 = TriggerBuilder.newTrigger().withIdentity("simpleTrigger", "group1")
-					.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(2)).build();   
+					.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(quartzFrequency)).build();   
 			Scheduler scheduler1 = new StdSchedulerFactory().getScheduler(); 
 			scheduler1.start(); 
 			scheduler1.scheduleJob(job1, trigger1); 
@@ -413,9 +431,69 @@ public class MispTransClientController {
 		catch(Exception e){ 
 			e.printStackTrace();
 		}
+    }
+
+    @RequestMapping("/listQuartzJobs")
+    public String listQuartzJobs() {
+    	log.info("List Quartz Jobs...");
+     	String quartzJobsString = "<br>";
+		
+    	try{
+    		Scheduler scheduler = new StdSchedulerFactory().getScheduler(); 
+
+    		for (String groupName : scheduler.getJobGroupNames()) {
+
+    		     for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
+
+    			  String jobName = jobKey.getName();
+    			  String jobGroup = jobKey.getGroup();
+
+    			  //get job's trigger
+    			  List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
+    			  Date nextFireTime = triggers.get(0).getNextFireTime();
+
+    				log.info("[jobName] : " + jobName + " [groupName] : "
+    					+ jobGroup + " - " + nextFireTime);
+    				
+    				quartzJobsString += 
+    						"[jobName] : " + jobName + 
+    						" [groupName] : " + jobGroup + 
+    						" - " + nextFireTime + "<\br>";
+
+    			  }
+    		    }
+    	}
+       	catch(SchedulerException e) {
+    		   log.error("SchedulerException");
+    	}  	
+    	catch(Exception e) {
+ 		   log.error("Exception");
+     	}
     	
+    	log.info("Quartz Jobs:" + quartzJobsString);
+    	
+    	return "Quartz Jobs:" + quartzJobsString;
+ 
     }
     
+    @RequestMapping("/stopQuartzJobs")
+    public void stopQuartzJobs() {
+    	
+    	try
+    	{
+    		Scheduler scheduler = new StdSchedulerFactory().getScheduler();		
+    		TriggerKey triggerKey = TriggerKey.triggerKey("simpleTrigger", "group1");
+    		scheduler.unscheduleJob(triggerKey);
+    		log.info("The sceduler stoped");
+    		//redirect(action: "view", params: params)
+    	}
+       	catch(SchedulerException e) {
+ 		   log.error("SchedulerException");
+       	}  	
+    	catch(Exception e) {
+		   log.error("Exception");
+    	}
+    }
     
     public boolean checkResources() {
     	int responseCode = 0;
@@ -565,21 +643,9 @@ public class MispTransClientController {
     
     private void persistTimestamps(String processType, String collection) {
         //Write value of nexTimestamp to the Config file
-        log.info("persistTimestamps " + " beginTimestamp: " + beginTimestamp + " endTimestamp: " + endTimestamp);
+        //log.info("persistTimestamps " + " beginTimestamp: " + beginTimestamp + " endTimestamp: " + endTimestamp);
   	
         Config.setProperty("stixtransclient.poll.beginTimestamp" + "." + collection + "." + processType, beginTimestamp);
         Config.setProperty("stixtransclient.poll.endTimestamp" + "." + collection + "." + processType, endTimestamp);
     }
 }
-
-/*
- * 
-
-Misp
-10.23.218.173
-admin@admin.test
-12qwaszx@#WESDXC
-
- * 
- */
-
