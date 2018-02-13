@@ -1,5 +1,5 @@
 #!/bin/bash
-rm -r ./deploy
+rm -r ./delpoy
 mvn clean package
 mkdir -p ./deploy/config
 cp ./target/*.jar ./deploy
