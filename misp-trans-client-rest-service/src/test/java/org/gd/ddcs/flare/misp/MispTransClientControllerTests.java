@@ -39,14 +39,14 @@ public class MispTransClientControllerTests {
     @Test
     public void noParamEventShouldRunDefaultProcess() throws Exception {
 
-        this.mockMvc.perform(get("/misptransclient")).andDo(print()).andExpect(status().isOk())
+        mockMvc.perform(get("/misptransclient")).andDo(print()).andExpect(status().isOk())
         	.andExpect(jsonPath("$.status").value("Success"));
     }
  
     @Test
     public void stixToMispParamEventShouldRunSticToMispProcess() throws Exception {
 
-        this.mockMvc.perform(get("/misptransclient?processType=stixToMisp")).andDo(print()).andExpect(status().isOk())
+        mockMvc.perform(get("/misptransclient?processType=stixToMisp")).andDo(print()).andExpect(status().isOk())
         	.andExpect(jsonPath("$.status").value("Success"));
     }
 }
