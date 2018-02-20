@@ -86,8 +86,8 @@ public class Config {
 		catch(FileNotFoundException e) {
     		log.error("Exception occurred in loadConfig()",e);
 		}
-		catch(Exception e) {
-    		log.error("Exception occurred in loadConfig()",e);
+		catch(IOException e) {
+    		log.error("IOException occurred in loadConfig()",e);
 		}
 	}
 

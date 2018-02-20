@@ -225,11 +225,15 @@ public class MispTransClientController {
     	}
     	catch(IllegalArgumentException e) {
     		detailedStatus = "Error: Invalid process type: ";
-    		log.error(status);
+    		log.error(status,e);
     	}
-    	catch(Exception e) {
-    		detailedStatus = "Error: Processing events failed.";
-    		log.error(status);
+    	catch(IOException e) {
+    		detailedStatus = "Error: Processing events failed. IOException";
+    		log.error(status,e);
+    	}
+    	catch(InterruptedException e) {
+    		detailedStatus = "Error: Processing events failed. InterruptedException";
+    		log.error(status,e);
     	}
     	finally {
     		safeCloseBR(stdError);
@@ -375,44 +379,46 @@ public class MispTransClientController {
         	//log.info("cmd: " + cmd);
         	p = Runtime.getRuntime().exec(cmd);
         }
-        catch(Exception e) {
-        	log.error("Exception occurred in checkTaxiiStatus()",e);
+        catch(IOException e) {
+        	log.error("IOException occurred in checkTaxiiStatus()",e);
         }
        
-    	try (BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));)
-    	{
-             while ((s = stdError.readLine()) != null)
-            {
-	    		if(s.indexOf("HTTP/1.1 200 OK") >=0){
-	    			responseCode=200;
-	    			break;
-	    		}
-	    		//Connection refused
-	    		else if(s.indexOf("Connection refused") >=0){
-	    			responseCode=401;
-	    			break;
-	    		}
-	    		//Connection timed out
-	    		else if(s.indexOf("Connection timed out") >=0){
-	    			responseCode=408;
-	    			break;
-	    		}
-	    		//Connection timed out
-	    		else if(s.indexOf("curl: ") ==0){
-	    			log.info(s);
-	    			break;
-	    		}
-	    		else {
-	    			//log.info(s);
-	    		}
-            }	        
-     	}
-    	catch(MalformedURLException e) {
-    		log.error("MalformedURLException occurred in checkTaxiiStatus()",e);
-    	}
-    	catch(Exception e) {
-    		log.error("Exception occurred in checkTaxiiStatus()",e);
-    	}
+        if(p != null) {
+	    	try (BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));)
+	    	{
+	             while ((s = stdError.readLine()) != null)
+	            {
+		    		if(s.indexOf("HTTP/1.1 200 OK") >=0){
+		    			responseCode=200;
+		    			break;
+		    		}
+		    		//Connection refused
+		    		else if(s.indexOf("Connection refused") >=0){
+		    			responseCode=401;
+		    			break;
+		    		}
+		    		//Connection timed out
+		    		else if(s.indexOf("Connection timed out") >=0){
+		    			responseCode=408;
+		    			break;
+		    		}
+		    		//Connection timed out
+		    		else if(s.indexOf("curl: ") ==0){
+		    			log.info(s);
+		    			break;
+		    		}
+		    		else {
+		    			//log.info(s);
+		    		}
+	            }	        
+	     	}
+	    	catch(MalformedURLException e) {
+	    		log.error("MalformedURLException occurred in checkTaxiiStatus()",e);
+	    	}
+	    	catch(IOException e) {
+	    		log.error("IOException occurred in checkTaxiiStatus()",e);
+	    	}
+        }
  
         return new HealthCheckResponse(resourceType, url, responseCode);
     }
@@ -431,8 +437,8 @@ public class MispTransClientController {
     	catch(MalformedURLException e) {
     		log.error("MalformedURLException occurred in checkMispStatus()",e);
     	}
-    	catch(Exception ex) {
-    		log.error("Exception occurred in checkMispStatus");
+    	catch(IOException e) {
+    		log.error("IOException occurred in checkMispStatus",e);
     	}
       	
         return new HealthCheckResponse(resourceType, url, responseCode);
@@ -474,9 +480,6 @@ public class MispTransClientController {
 		catch(SchedulerException e){
 			log.error("Exception occurred in initQuartz().",e);
 		}
-		catch(Exception e){
-			log.error("Exception occurred in initQuartz().",e);
-		}
     }
 
     @RequestMapping("/listQuartzJobs")
@@ -512,9 +515,6 @@ public class MispTransClientController {
        	catch(SchedulerException e) {
        		log.error("SchedulerException",e);
     	}  	
-    	catch(Exception e) {
- 		   log.error("Exception",e);
-     	}
     	
     	log.info("Quartz Jobs:" + quartzJobsString);
     	
@@ -536,40 +536,30 @@ public class MispTransClientController {
        	catch(SchedulerException e) {
  		   log.error("SchedulerException");
        	}  	
-    	catch(Exception e) {
-		   log.error("Exception");
-    	}
     }
     
     private boolean checkResources() {
     	boolean resourcesAvailable = true;
     	
-    	try 
-    	{
-	    	 HealthCheckResponse response = null;
-	    	 
-	    	 response = checkTaxiiStatus();
-	    	 if(response.getStatusCode() == 200) {
-	    		 log.info("TAXII health check passed."); 
-	    	 }
-	    	 else {
-	    		 log.info("TAXII health check failed."); 
-	    		 resourcesAvailable = false;
-	    	 }
-	    	 
-	    	 response = checkMispStatus();
-	    	 if(response.getStatusCode() == 200) {
-	    		 log.info("Misp health check passed."); 
-	    	 }
-	    	 else {
-	    		 log.info("Misp health check failed.");
-	    		 resourcesAvailable = false;
-	    	 }
-    	}
-     	catch(Exception e) {
-    		log.error("Exception occurred in checkResources()",e);
-   		    resourcesAvailable = false;
-    	}
+    	 HealthCheckResponse response = null;
+    	 
+    	 response = checkTaxiiStatus();
+    	 if(response.getStatusCode() == 200) {
+    		 log.info("TAXII health check passed."); 
+    	 }
+    	 else {
+    		 log.info("TAXII health check failed."); 
+    		 resourcesAvailable = false;
+    	 }
+    	 
+    	 response = checkMispStatus();
+    	 if(response.getStatusCode() == 200) {
+    		 log.info("Misp health check passed."); 
+    	 }
+    	 else {
+    		 log.info("Misp health check failed.");
+    		 resourcesAvailable = false;
+    	 }
     	
     	return resourcesAvailable;
     }
