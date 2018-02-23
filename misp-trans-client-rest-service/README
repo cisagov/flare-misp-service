@@ -1,5 +1,16 @@
 This application is a service that transfers Stix Events from a Stix Server to a Misp Server.
 
+
+*** Keys and Certs ***
+
+This application depends on a key value to connect to the MISP server, and depends on Cert and Key files to connect to the FLARE server.
+Contact the system administrators for these systems to request these items.
+The key value to connect to the MISP server should be assigned to the stixtransclient.misp.key property in the config.properties file.
+The Cert and Key files to connect to the FLARE server should be saved to the config directory.
+Please note that Development Key and Cert values are required to pass the unit tests when packaging the application, but production files will need to
+be written to /opt/mtc/config after the application has been deployed.
+
+
 To run the application:
 
 mvn spring-boot:run
@@ -44,4 +55,48 @@ mvn clean package.
 Then you can run the JAR file:
 
 java -jar target/mtc-rest-service-0.1.0.jar
+
+
+** packageDeployment.sh **
+
+The packageDeployment.sh script is a script that will package the application for deployment.
+
+The script performs the following steps:
+
+* TARs up the existing install in a time stamped file that is written to /tmp.
+* Created output directory /opt/mtc/out
+* Installs files nececasry to perfom unit tests to /opt/mtc/config
+* Runs mvn clean package, which runs the unit tests and builds the JAR file
+* Packages the JAR and all the application related files in a TAR file which can then be unTARed to /opt/mtc
+* Once the TAR file has been unpacked, run /opt/mtc/runFLAREmispService.sh to launch the application
+
+Sample commands:
+
+initQuartz
+http://localhost:8080/initQuartz
+
+listQuartzJobs
+http://localhost:8080/listQuartzJobs
+
+stopQuartzJobs
+http://localhost:8080/stopQuartzJobs
+
+xmlOutput
+http://localhost:8080/misptransclient?processType=xmlOutput
+
+stixToMisp
+http://localhost:8080/misptransclient?processType=stixToMisp
+
+checkTaxiiStatus
+http://localhost:8080/checkTaxiiStatus
+
+checkMispStatus
+http://localhost:8080/checkMispStatus
+
+xmlOutput - NCPS_Automated
+http://localhost:8080/misptransclient?processType=xmlOutput&collection=NCPS_Automated
+ 
+
+
+
 
