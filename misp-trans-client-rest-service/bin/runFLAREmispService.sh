@@ -1,3 +1,3 @@
 #!/bin/bash
 java -version
-java -jar mtc-rest-service-0.1.0.jar &
+java -jar mtc-rest-service-1.0.0.jar &
