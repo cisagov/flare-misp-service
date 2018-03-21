@@ -252,6 +252,7 @@ public class MispTransClientController {
     private String getCommandStr(String processType, String collection)  {
      	List<String> validProcessTypes = new ArrayList<String>();
     	
+     	
     	validProcessTypes.add("");
     	validProcessTypes.add("stixToMisp");
     	validProcessTypes.add("xmlOutput");
@@ -338,30 +339,33 @@ public class MispTransClientController {
     	return commandStr;
     }
     
+    
+    /***************
     @RequestMapping("/showProperties")
     public String showProperties() {
     	
-    	Properties prop = new Properties();
+    	//Properties prop = new Properties();
       	
-    	try(InputStream input = new FileInputStream("config/config.properties");){
-    		prop.load(input);
-    	}
-    	catch(IOException e) {
-    		log.error("Exception occurred in showProperties()",e);
-    	}
+    	//try(InputStream input = new FileInputStream("config/config.properties");){
+    		//prop.load(input);
+    	//}
+    	//catch(IOException e) {
+    		//log.error("Exception occurred in showProperties()",e);
+    	//}
     	
-    	String propToString = "<br>";
+    	//String propToString = "<br>";
     	
-    	for(String key : prop.stringPropertyNames()) {
-    		  String value = prop.getProperty(key);
-    		  String str = key + " => " + value;
-    		  propToString += str + "<br>";
-    		}
+    	//for(String key : prop.stringPropertyNames()) {
+    		  //String value = prop.getProperty(key);
+    		  //String str = key + " => " + value;
+    		  //propToString += str + "<br>";
+    		//}
     	
-    	log.info("Properties: " + propToString);
+    	//log.info("Properties: " + propToString);
     	
-    	return "Properties: " + propToString;
+    	//return "Properties: " + propToString;
     }
+    ********************/
 
     @RequestMapping("/checkTaxiiStatus")
     private HealthCheckResponse checkTaxiiStatus() {
@@ -446,7 +450,20 @@ public class MispTransClientController {
     
     @RequestMapping("/refreshConfig")
     public void refreshConfig() {
-    	Config.loadConfig();
+    	    log.info("Controller refreshConfig - Attempting to Reload Configuration Properties and Update the Service.");
+        	log.info("Controller refreshConfig Step 1of5 - Attempt to STOP Quartz Jobs...");
+    		stopQuartzJobs();
+        	log.info("Controller refreshConfig Step 2of5 - Attempt to STOP Quartz Scheduler...");
+    		stopQuartzScheduler();
+        	log.info("Controller refreshConfig Step 3of5 - Attempt to reload Configuration Properties...");
+
+        	log.info("Controller refreshConfig Step 4of5 - Reset Begin/End TimeStamps. Will be initialized via Configuration Properties...");
+        	beginTimestamp = null;
+            endTimestamp = null;
+        	
+    		Config.loadConfig();
+    		log.info("Controller refreshConfig Step 5of5 - Attempt to ReSTART the Quartz Scheduler...");
+    		initQuartz();
     }
     
     @RequestMapping("/initQuartz")
@@ -538,13 +555,29 @@ public class MispTransClientController {
     		Scheduler scheduler = new StdSchedulerFactory().getScheduler();		
     		TriggerKey triggerKey = TriggerKey.triggerKey("simpleTrigger", "group1");
     		scheduler.unscheduleJob(triggerKey);
-    		log.info("The sceduler stoped");
+    		log.info("The scheduler stopped the Jobs for group1");
     		//redirect(action: "view", params: params)
     	}
        	catch(SchedulerException e) {
  		   log.error("SchedulerException");
        	}  	
     }
+    
+    //DONT allow stopQuartzScheduler() to be called via the REST API. 
+    //Only used for internal purposes when reloading configuration properties and must insure scheduler updated as well.
+    private void stopQuartzScheduler() {
+		try
+		{
+			log.info("Controller - Attempting to STOP the Quartz Scheduler...");
+			Scheduler scheduler = new StdSchedulerFactory().getScheduler();
+			scheduler.shutdown();
+			log.info("Controller - The scheduler is STOPPED successfully.");
+		}
+	   	catch(SchedulerException e) {
+			   log.error("Controller - has encountered a SchedulerException while attempt to Stop the Quartz Scheduler.");
+	   	}  	
+    }
+    
     
     private boolean checkResources() {
     	boolean resourcesAvailable = true;
@@ -610,7 +643,7 @@ public class MispTransClientController {
         endTimestamp = null;
 
         //Refresh each time so that service does not need to be restarted to refresh the conf values
-        refreshConfig();
+        //refreshConfig();  If persistTimeStamps() is writing to the Config file and then calling LoadConfig to read them back into Memory, dont need Refresh Here!
         
         String latestValFromConfig = Config.getProperty("stixtransclient.poll.endTimestamp" + "." + collection + "." + processType);
         
