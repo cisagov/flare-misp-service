@@ -451,7 +451,7 @@ public class MispTransClientController {
     
     @RequestMapping("/initQuartz")
     public void initQuartz() {
-    	log.info("Initializing Quartz Jobs...");
+    	log.info("Controller - Asked to Initialize Quartz Scheduler...");
     	
     	String quartzFrequencyStr = Config.getProperty("mtc.quartz.frequency"); 
     	int quartzFrequency = 2;
@@ -465,10 +465,18 @@ public class MispTransClientController {
 			JobDetail job1 = JobBuilder.newJob(InitializeQuartzJob.class).withIdentity("initializeQuartzJob", "group1").build();
 
 			Trigger trigger1 = TriggerBuilder.newTrigger().withIdentity("simpleTrigger", "group1")
-					.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(quartzFrequency)).build();   
-			Scheduler scheduler1 = new StdSchedulerFactory().getScheduler(); 
-			scheduler1.start(); 
-			scheduler1.scheduleJob(job1, trigger1); 
+					                         .withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(quartzFrequency)).build();   
+			Scheduler scheduler1 = new StdSchedulerFactory().getScheduler();
+			if(!scheduler1.isStarted())
+			{
+		    	log.info("Controller- Quartz Scheduler has not been started automatically. Or has previously stopped. Starting it now.");
+				scheduler1.start(); 
+				scheduler1.scheduleJob(job1, trigger1); 
+			}
+			else
+			{
+		    	log.warn("Controller- Quartz Scheduler has already been started.");
+			}
 //			
 //			JobDetail job2 = JobBuilder.newJob(ByeJob.class).withIdentity("byeJob", "group2").build();
 //			Trigger trigger2 = TriggerBuilder.newTrigger().withIdentity("cronTrigger", "group2")
@@ -478,7 +486,7 @@ public class MispTransClientController {
 //			scheduler2.scheduleJob(job2, trigger2); 
 			}
 		catch(SchedulerException e){
-			log.error("Exception occurred in initQuartz().",e);
+			log.error("Controller - Exception occurred in initQuartz().",e);
 		}
     }
 
