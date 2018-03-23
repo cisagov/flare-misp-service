@@ -565,6 +565,7 @@ public class MispTransClientController {
     
     //DONT allow stopQuartzScheduler() to be called via the REST API. 
     //Only used for internal purposes when reloading configuration properties and must insure scheduler updated as well.
+    //The scheduler will be terminated when the jvm is terminated. 
     private void stopQuartzScheduler() {
 		try
 		{
