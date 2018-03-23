@@ -20,7 +20,8 @@ public class QuartzStartup implements ApplicationListener<ApplicationReadyEvent>
 	//Concept from online article: //https://stackoverflow.com/questions/27405713/running-code-after-spring-boot-starts
 	//Goal: To insure the Quartz Scheduler is started automatically without manual intervention.
 	//      Spring/SpringBoot supports the @Component annotation and several EventHandler methods that you can implement.
-	//      onApplicationEvent() is called once all the setup of SpringBoot is complete.
+	//      onApplicationEvent() is called once after all the setup of SpringBoot is complete.
+	//      We can use the same code for initQuartz() here inside this event handler at this point in time.
 
 	
 	private static Logger log = LoggerFactory.getLogger(QuartzStartup.class);
@@ -54,7 +55,7 @@ public class QuartzStartup implements ApplicationListener<ApplicationReadyEvent>
 			}
 			else
 			{
-		    	log.warn("ApplicationListener- Quartz Scheduler has already been started.");
+		    	log.warn("ApplicationListener- Quartz Scheduler has already been started. Ignoring this request to Start it again.");
 			}		
 		}
 		catch(SchedulerException ex)
