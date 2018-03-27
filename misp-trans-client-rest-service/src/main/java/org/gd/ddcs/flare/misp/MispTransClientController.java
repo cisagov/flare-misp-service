@@ -259,6 +259,8 @@ public class MispTransClientController {
  
     	String qualifiedPythonCommand = Config.getProperty("bin.filepath") + "/" + Config.getProperty("python.command");
     	String pollUrl = Config.getProperty("stixtransclient.poll.url"); 
+
+    	
     	
     	// flare/taxii client key
     	String clientKey = Config.getProperty("stixtransclient.client.key"); 
@@ -277,6 +279,8 @@ public class MispTransClientController {
     	String destinationDirectory = Config.getProperty("stixtransclient.destination.directory");
     	String mispUrl = Config.getProperty("stixtransclient.misp.url");
     	String mispKey = Config.getProperty("stixtransclient.misp.key");	
+
+
     	
     	setTimestamps(collection,processType);
 
@@ -306,7 +310,24 @@ public class MispTransClientController {
         			+ " --collection " + sourceCollection
         			+ " --begin-timestamp " + this.getBeginTimestamp()
         			+ " --end-timestamp " + this.getEndTimestamp()
-        			;    		
+        			;
+    		
+    		
+        	// --misp_published  (Passing this argument will automatically set the published value to True.
+    		//      NOTE: DONT PASS A NAME VALUE PAIR for this argument. Just it's existance is required. 
+    		//      Passing a value with this argument will break the python command itself.
+        	//      MISP Events wont require approval from User in order to be disseminated to other MISP Servers)
+        	String mispPublished = Config.getProperty("stixtransclient.misp.published");
+        	if((mispPublished != null)&&(mispPublished.length() > 0))
+        	{
+        		log.info("mispPublished property detected in configuration. Appending argument to command.");
+        		commandStr = commandStr + " --misp-published ";
+        	}
+        	else
+        	{
+        		log.info("mispPublished NOT detected in configuration or it's value is emptystring.");
+        	}
+    		
     	}
     	else if("xmlOutput".equals(processType) ) {
             // Sample xmlOutput command:
