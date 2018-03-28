@@ -187,10 +187,12 @@ public class MispTransClientController {
 		    	p.destroy();
 		    	
 		    	if(taxiiServerNotResponding) {
+		    		status = "Failed";
 		    		detailedStatus = "Exception: didn't get a poll response";
 		    		log.error(detailedStatus);
 		    	}
 		    	else if(hasError) {
+		    		status = "Failed";
 		    		String str = (String)errorAL.get(0);
 		    		String detail = "";
 		    		
@@ -214,10 +216,11 @@ public class MispTransClientController {
 		    	}
 	    	}
 	    	else {
-	    		detailedStatus = "Resource Check falied";
+	    		status = "Failed";
+	    		detailedStatus = "Error: Resource Check failed";
 	    	}
 	    	
-	    	log.info("Processing events: " + status);
+	    	log.info("Status of Processing events: " + status);
 	    	
 	    	if("Success".equals(status)) {
 	    		persistTimestamps(validatedProcessType, validatedCollection);
@@ -611,7 +614,7 @@ public class MispTransClientController {
     		 log.info("TAXII health check passed."); 
     	 }
     	 else {
-    		 log.info("TAXII health check failed."); 
+    		 log.error("TAXII health check failed."); 
     		 resourcesAvailable = false;
     	 }
     	 
@@ -620,7 +623,7 @@ public class MispTransClientController {
     		 log.info("Misp health check passed."); 
     	 }
     	 else {
-    		 log.info("Misp health check failed.");
+    		 log.error("Misp health check failed.");
     		 resourcesAvailable = false;
     	 }
     	
