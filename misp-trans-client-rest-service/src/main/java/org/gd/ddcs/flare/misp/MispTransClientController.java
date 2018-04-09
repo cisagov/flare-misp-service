@@ -359,7 +359,8 @@ public class MispTransClientController {
     		log.info("Unknown processType: " + processType);  
         	commandStr = qualifiedPythonCommand;
     	}
-   	
+    	log.debug("CTI-Toolkit Raw Command: ");
+    	log.debug(commandStr);
     	return commandStr;
     }
     
