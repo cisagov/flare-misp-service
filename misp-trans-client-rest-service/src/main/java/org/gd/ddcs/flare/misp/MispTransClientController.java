@@ -225,6 +225,9 @@ public class MispTransClientController {
 	    	if("Success".equals(status)) {
 	    		persistTimestamps(validatedProcessType, validatedCollection);
 	    	}
+	    	else if("Failed".equals(status)){ //Still need to record timestamps, otherwise it loops the failure forever
+	    		persistTimestamps(validatedProcessType, validatedCollection);
+	    	}
     	}
     	catch(IllegalArgumentException e) {
     		detailedStatus = "Error: Invalid process type: ";
