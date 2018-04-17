@@ -10,5 +10,5 @@
 
 
 #All Deploy folder files except the tar
-#deploy/*
+deploy/*
 !deploy/FLAREmispService.tar
