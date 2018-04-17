@@ -7,3 +7,8 @@
 /gradlew.bat
 /manifest.yml
 /misp2.project
+
+
+#All Deploy folder files except the tar
+#deploy/*
+!deploy/FLAREmispService.tar
