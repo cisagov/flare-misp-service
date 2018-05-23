@@ -116,12 +116,12 @@ URL:  http://localhost:8080/listQuartzJobs
 
 Verify connectivity to MISP Server
 URL: http://localhost:8080/checkMispStatus
-﻿{"resourceType":"Misp","resource":"http://10.23.218.173","statusCode":200}
+﻿{"resourceType":"Misp","resource":"<MISP URL here>","statusCode":200}
 
 
 Verify connectivity to FLARE TAXI Server
 URL: http://localhost:8080/checkTaxiiStatus
-﻿{"resourceType":"FLARE/TAXII","resource":"https://10.23.218.172:8443","statusCode":200}
+﻿{"resourceType":"FLARE/TAXII","resource":"<MISP URL here>:<MISP Port here>","statusCode":200}
 
 
 Verify the configuration property file can be loaded/reloaded
