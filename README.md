@@ -4,7 +4,7 @@ It can be configured to run CTI-toolkit commands to pull from a TAXII server
 and convert the STIX files into MISP format or just download the STIX as xml 
 at regular intervals. 
 
-#To build the tarball:
+# To build the tarball:
 
 1) Pull the most recent code 
    Set up Maven and Java 8 properly
@@ -16,10 +16,11 @@ at regular intervals.
    the tarball should be in ~git/FLAREmispService/misp-trans-client-rest-service/deploy/
    named FLAREmispService.tar
    
-#Tutorial
+# Tutorial
+
 See included TutorialOn_FLAREMispService.pptx
    
-#Installation:
+# Installation:
 
 Refer to the SAG for more details
 
