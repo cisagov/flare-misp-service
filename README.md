@@ -78,37 +78,7 @@ b.	Verify the logging property: logging.level.org.springframework.web = ERROR   
 
 8)	To start the FlareMispService:
 a.	Run the shell script:  /opt/mtc/runFLAREmispService.sh
-b.	Output should display on the console:
-
-i.	 [flaredev@localhost mtc]$ ./runFLAREmispService.sh 
-ii.	java version "1.8.0_151"
-iii.	Java(TM) SE Runtime Environment (build 1.8.0_151-b12)
-iv.	Java HotSpot(TM) 64-Bit Server VM (build 25.151-b12, mixed mode)
-v.	[flaredev@localhost mtc]$ 
-vi.	  .   ____          _            __ _ _
-vii.	 /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
-viii.	( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
-ix.	 \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
-x.	  '  |____| .__|_| |_|_| |_\__, | / / / /
-xi.	 =========|_|==============|___/=/_/_/_/
-xii.	 :: Spring Boot ::        (v1.5.9.RELEASE)
-xiii.	
-xiv.	2018-02-28 09:18:50 - Starting Application v0.1.0 on localhost.localdomain with PID 5289 (/opt/mtc/mtc-rest-service-0.1.0.jar started by flaredev in /opt/mtc)
-xv.	2018-02-28 09:18:50 - No active profile set, falling back to default profiles: default
-xvi.	2018-02-28 09:18:50 - Refreshing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@5cb0d902: startup date [Wed Feb 28 09:18:50 EST 2018]; root of context hierarchy
-xvii.	2018-02-28 09:18:53 - Tomcat initialized with port(s): 8080 (http)
-xviii.	2018-02-28 09:18:53 - Starting service [Tomcat]
-xix.	2018-02-28 09:18:53 - Starting Servlet Engine: Apache Tomcat/8.5.23
-xx.	2018-02-28 09:18:53 - Initializing Spring embedded WebApplicationContext
-xxi.	2018-02-28 09:18:53 - Mapping servlet: 'dispatcherServlet' to [/]
-xxii.	2018-02-28 09:18:53 - Mapping filter: 'characterEncodingFilter' to: [/*]
-xxiii.	2018-02-28 09:18:53 - Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
-xxiv.	2018-02-28 09:18:53 - Mapping filter: 'httpPutFormContentFilter' to: [/*]
-xxv.	2018-02-28 09:18:53 - Mapping filter: 'requestContextFilter' to: [/*]
-xxvi.	2018-02-28 09:18:55 - Registering beans for JMX exposure on startup
-xxvii.	2018-02-28 09:18:55 - Tomcat started on port(s): 8080 (http)
-xxviii.	2018-02-28 09:18:55 - Started Application in 6.303 seconds (JVM running for 7.427)
-
+b.	Output should display on the console
 
 
 9)	Independently verify the service is running with the following command:
