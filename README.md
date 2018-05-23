@@ -7,14 +7,18 @@ at regular intervals.
 # To build the tarball:
 
 1) Pull the most recent code 
+
    Set up Maven and Java 8 properly
+   
 2) go to the ~git/FLAREmispService/misp-trans-client-rest-service folder. 
+
    There should be a pom.xml file in this directory. Run command:
+   
 				mvn clean package
+				
    in order to build the package
-3) run the packageDeployment.sh script to pack the built mvn package into a tarball
-   the tarball should be in ~git/FLAREmispService/misp-trans-client-rest-service/deploy/
-   named FLAREmispService.tar
+   
+3) run the packageDeployment.sh script to pack the built mvn package into a tarball the tarball should be in ~git/FLAREmispService/misp-trans-client-rest-service/deploy/ named FLAREmispService.tar
    
 # Tutorial
 
