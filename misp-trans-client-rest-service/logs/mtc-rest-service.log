@@ -2,6 +2,3 @@
 # This insures the subdir is not empty, 
 # Will be contained within the Tarball, 
 # And created on the target environment when the tarball is unpacked.
-2018-03-20 11:58:33 [main] INFO  o.s.b.t.m.w.SpringBootMockServletContext - Initializing Spring FrameworkServlet ''
-2018-03-20 11:58:33 [main] INFO  o.s.t.w.s.TestDispatcherServlet - FrameworkServlet '': initialization started
-2018-03-20 11:58:34 [main] INFO  o.s.t.w.s.TestDispatcherServlet - FrameworkServlet '': initialization completed in 954 ms
