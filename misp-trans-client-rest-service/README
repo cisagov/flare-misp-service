@@ -1,5 +1,9 @@
 This application is a service that transfers Stix Events from a Stix Server to a Misp Server.
 
+To generate encryption password:
+
+The encryption library (Encryption.jar) is located at config folder.  To generate the encryption password
+java -cp Encryption.jar xor.bcmcgroup.Main <password> <encryptionKey>
 
 *** Keys and Certs ***
 
