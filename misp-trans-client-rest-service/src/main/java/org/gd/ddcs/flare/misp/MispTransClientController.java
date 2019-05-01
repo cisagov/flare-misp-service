@@ -1,21 +1,19 @@
 package org.gd.ddcs.flare.misp;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.gd.ddcs.flare.misp.util.EncryptionUtil;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
@@ -29,9 +27,12 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 /*
  * This controller pulls events from a FLARE/taxii server and pushes them out to a MISP server using the
@@ -284,7 +285,7 @@ public class MispTransClientController {
     	
     	String destinationDirectory = Config.getProperty("stixtransclient.destination.directory");
     	String mispUrl = Config.getProperty("stixtransclient.misp.url");
-    	String mispKey = Config.getProperty("stixtransclient.misp.key");	
+    	String mispKey = EncryptionUtil.decrypt(Config.getProperty("stixtransclient.misp.key"));	
 
 
     	
@@ -472,6 +473,9 @@ public class MispTransClientController {
     	catch(IOException e) {
     		log.error("IOException occurred in checkMispStatus",e);
     	}
+    	catch(URISyntaxException e) {
+    		log.error("URISyntaxException occured in checkMispStatus");
+    	}
       	
         return new HealthCheckResponse(resourceType, url, responseCode);
     }
@@ -634,12 +638,11 @@ public class MispTransClientController {
     	return resourcesAvailable;
     }
     
-    private static int getResponseCode(String urlString) throws MalformedURLException, IOException {
-    	URL u = new URL(urlString); 
-    	HttpURLConnection huc =  (HttpURLConnection)  u.openConnection(); 
-    	huc.setRequestMethod("GET"); 
-    	huc.connect(); 
-    	return huc.getResponseCode();
+    private static int getResponseCode(String urlString) throws MalformedURLException, URISyntaxException, IOException {
+    	RestTemplate restTemplate = new RestTemplate();
+    	URI uri = new URI(urlString);
+    	ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, null, String.class);
+    	return response.getStatusCodeValue();
     }
 
     private String getTimestamp() {
