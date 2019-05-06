@@ -52,8 +52,8 @@ public class MispTransClientController {
     private final AtomicLong counter = new AtomicLong();
     private static Logger log = LoggerFactory.getLogger(MispTransClientController.class);
     boolean resourcesAvailable = false;
-    String beginTimestamp = null;
-    String endTimestamp = null;
+    private String beginTimestamp = null;
+    private String endTimestamp = null;
    
     /*
      * Sample URLs:
@@ -74,8 +74,8 @@ public class MispTransClientController {
     	String detailedStatus = "failed to completed sucessfully.  Review log for additional details.";
     	
     	//ArrayLists to capture exceptions, and warnings
-    	ArrayList<String>errorAL = new ArrayList<String>();
-    	ArrayList<String>warningAL = new ArrayList<String>();
+    	ArrayList<String>errorAL = new ArrayList<>();
+    	ArrayList<String>warningAL = new ArrayList<>();
 
         boolean hasError = false;
         boolean hasWarning = false;
@@ -146,7 +146,7 @@ public class MispTransClientController {
 	            stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 	
 	            // Read the output from the command
-	            String s = null;
+	            String s;
 	            
 	            //while ((s = stdInput.readLine()) != null)
 	            //{
@@ -162,15 +162,15 @@ public class MispTransClientController {
 			    		taxiiServerNotResponding = true;
 		                hasError = true;
 	        	    }
-		        	else if ( s.indexOf("ERROR") >=0 ||
-		        			  s.indexOf("Error") >=0)
+		        	else if ( s.contains("ERROR") ||
+		        			  s.contains("Error"))
 	        	    {
 		        	    log.info("Error String: " +  s);
 		    			errorAL.add(s);
 			    		log.error(s);
 		                hasError = true;
 	        	    }	        	    
-	        	    else if (s.indexOf("Exception:") >= 0) {
+	        	    else if (s.contains("Exception:")) {
 		    			errorAL.add(s);
 			    		log.error(s);
 		                hasError = true;
@@ -194,14 +194,14 @@ public class MispTransClientController {
 		    	}
 		    	else if(hasError) {
 		    		status = "Failed";
-		    		String str = (String)errorAL.get(0);
+		    		String str = errorAL.get(0);
 		    		String detail = "";
 		    		
-		    		if(str.indexOf("unable to create output directory") >=0) {
-		    			detail = "  Verify that stixtransclient.destination.directory is properly configured.";
+		    		if(str.contains("unable to create output directory")) {
+		    			detail = "Unable to create output directory - Verify that stixtransclient.destination.directory is properly configured.";
 		    		}
-		    		else if(str.indexOf("IOError") >=0) {
-		    			detail = "  Verify that stixtransclient.client.basedir is properly configured and readable.";
+		    		else if(str.contains("IOError")) {
+		    			detail = "IOError - Verify that stixtransclient.client.basedir is properly configured and readable.";
 		    		}
 
 		    		detailedStatus = "Exception: " + str + detail;
@@ -226,7 +226,7 @@ public class MispTransClientController {
 	    	if("Success".equals(status)) {
 	    		persistTimestamps(validatedProcessType, validatedCollection);
 	    	}
-	    	else if("Failed".equals(status)){ //Still need to record timestamps, otherwise it loops the failure forever
+	    	else { //Still need to record timestamps, otherwise it loops the failure forever
 	    		persistTimestamps(validatedProcessType, validatedCollection);
 	    	}
     	}
@@ -257,7 +257,7 @@ public class MispTransClientController {
     }
     
     private String getCommandStr(String processType, String collection)  {
-     	List<String> validProcessTypes = new ArrayList<String>();
+     	List<String> validProcessTypes = new ArrayList<>();
     	
      	
     	validProcessTypes.add("");
@@ -273,10 +273,7 @@ public class MispTransClientController {
     	String clientKey = Config.getProperty("stixtransclient.client.key"); 
     	
     	// flare/taxii client cert
-    	String clientCert = Config.getProperty("stixtransclient.client.cert"); 
-
-    	//Source Collection
-    	String sourceCollection = collection;
+    	String clientCert = Config.getProperty("stixtransclient.client.cert");
     	
     	//outputType (preserve leading, and trailing spaces)
     	// --xml_output 
@@ -291,7 +288,7 @@ public class MispTransClientController {
     	
     	setTimestamps(collection,processType);
 
-    	String commandStr = "";
+    	String commandStr;
 
     	if ( !validProcessTypes.contains(processType) )  {
     		throw new IllegalArgumentException("Invalid Process Type: " + processType);
@@ -314,7 +311,7 @@ public class MispTransClientController {
         			+ outputType 
         			+ " --misp-url " + mispUrl
         			+ " --misp-key " + mispKey
-        			+ " --collection " + sourceCollection
+        			+ " --collection " + collection
         			+ " --begin-timestamp " + this.getBeginTimestamp()
         			+ " --end-timestamp " + this.getEndTimestamp()
         			;
@@ -354,7 +351,7 @@ public class MispTransClientController {
         			+ " --key " + clientKey
         			+ " --cert " + clientCert 
         			+ " --taxii " 
-        			+ " --collection " + sourceCollection
+        			+ " --collection " + collection
         			+ " --begin-timestamp " + this.getBeginTimestamp()
         			+ " --end-timestamp " + this.getEndTimestamp()
         			+ outputType + destinationDirectory;        		
@@ -399,21 +396,21 @@ public class MispTransClientController {
     @RequestMapping("/checkTaxiiStatus")
     private HealthCheckResponse checkTaxiiStatus() {
     	int responseCode = 0;
-    	String url = "";
+    	String url;
         String resourceType="FLARE/TAXII";
     	url = Config.getProperty("stixtransclient.poll.baseurl");	    	
     	
         String cmd="curl -vk " + url;
         
         Process p = null;
-        String s = null;
+        String s;
         
         try {
         	//log.info("cmd: " + cmd);
         	p = Runtime.getRuntime().exec(cmd);
         }
         catch(IOException e) {
-        	log.error("IOException occurred in checkTaxiiStatus()",e);
+        	log.error("Exception when trying to create a process: {}", e.getMessage());
         }
        
         if(p != null) {
@@ -421,17 +418,17 @@ public class MispTransClientController {
 	    	{
 	             while ((s = stdError.readLine()) != null)
 	            {
-		    		if(s.indexOf("HTTP/1.1 200 OK") >=0){
+		    		if(s.contains("HTTP/1.1 200 OK")){
 		    			responseCode=200;
 		    			break;
 		    		}
 		    		//Connection refused
-		    		else if(s.indexOf("Connection refused") >=0){
+		    		else if(s.contains("Connection refused")){
 		    			responseCode=401;
 		    			break;
 		    		}
 		    		//Connection timed out
-		    		else if(s.indexOf("Connection timed out") >=0){
+		    		else if(s.contains("Connection timed out")){
 		    			responseCode=408;
 		    			break;
 		    		}
@@ -446,10 +443,11 @@ public class MispTransClientController {
 	            }	        
 	     	}
 	    	catch(MalformedURLException e) {
-	    		log.error("MalformedURLException occurred in checkTaxiiStatus()",e);
+				log.error("Error: URL {} is a malformed URL: {}", url, e.getMessage());
 	    	}
 	    	catch(IOException e) {
-	    		log.error("IOException occurred in checkTaxiiStatus()",e);
+	    		log.error("Exception when trying to check taxxi status: {}", e.getMessage());
+				log.error("Stack Trace", e);
 	    	}
         }
  
@@ -467,14 +465,8 @@ public class MispTransClientController {
 	    	url = Config.getProperty("stixtransclient.misp.url");
 	    	responseCode = getResponseCode(url);
      	}
-    	catch(MalformedURLException e) {
-    		log.error("MalformedURLException occurred in checkMispStatus()",e);
-    	}
-    	catch(IOException e) {
-    		log.error("IOException occurred in checkMispStatus",e);
-    	}
     	catch(URISyntaxException e) {
-    		log.error("URISyntaxException occured in checkMispStatus");
+			log.error("Error: URI {} is a malformed URL: {}", url, e.getMessage());
     	}
       	
         return new HealthCheckResponse(resourceType, url, responseCode);
@@ -535,14 +527,14 @@ public class MispTransClientController {
 //			scheduler2.scheduleJob(job2, trigger2); 
 			}
 		catch(SchedulerException e){
-			log.error("Controller - Exception occurred in initQuartz().",e);
+			log.error("Exception when trying to get Quartz Scheduler: {}", e.getMessage());
 		}
     }
 
     @RequestMapping("/listQuartzJobs")
     public String listQuartzJobs() {
     	log.info("List Quartz Jobs...");
-     	String quartzJobsString = "<br>";
+     	StringBuilder quartzJobsString = new StringBuilder("<br>");
 		
     	try{
     		Scheduler scheduler = new StdSchedulerFactory().getScheduler(); 
@@ -560,22 +552,25 @@ public class MispTransClientController {
 
     				log.info("[jobName] : " + jobName + " [groupName] : "
     					+ jobGroup + " - " + nextFireTime);
-    				
-    				quartzJobsString += 
-    						"[jobName] : " + jobName + 
-    						" [groupName] : " + jobGroup + 
-    						" - " + nextFireTime + "<\br>";
+
+                     quartzJobsString.append("[jobName] : ")
+                             .append(jobName)
+                             .append(" [groupName] : ")
+                             .append(jobGroup)
+                             .append(" - ")
+                             .append(nextFireTime)
+                             .append("<\\br>");
 
     			  }
     		    }
     	}
        	catch(SchedulerException e) {
-       		log.error("SchedulerException",e);
+			log.error("Exception when trying to get Quartz Scheduler: {}", e.getMessage());
     	}  	
     	
-    	log.info("Quartz Jobs:" + quartzJobsString);
+    	log.info("Quartz Jobs:" + quartzJobsString.toString());
     	
-    	return "Quartz Jobs:" + quartzJobsString;
+    	return "Quartz Jobs:" + quartzJobsString.toString();
  
     }
     
@@ -607,7 +602,7 @@ public class MispTransClientController {
 			log.info("Controller - The scheduler is STOPPED successfully.");
 		}
 	   	catch(SchedulerException e) {
-			   log.error("Controller - has encountered a SchedulerException while attempt to Stop the Quartz Scheduler.");
+			   log.error("Exception when trying to Stop the Quartz Scheduler.");
 	   	}  	
     }
     
@@ -615,7 +610,7 @@ public class MispTransClientController {
     private boolean checkResources() {
     	boolean resourcesAvailable = true;
     	
-    	 HealthCheckResponse response = null;
+    	 HealthCheckResponse response;
     	 
     	 response = checkTaxiiStatus();
     	 if(response.getStatusCode() == 200) {
@@ -638,7 +633,7 @@ public class MispTransClientController {
     	return resourcesAvailable;
     }
     
-    private static int getResponseCode(String urlString) throws MalformedURLException, URISyntaxException, IOException {
+    private static int getResponseCode(String urlString) throws URISyntaxException {
     	RestTemplate restTemplate = new RestTemplate();
     	URI uri = new URI(urlString);
     	ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, null, String.class);
@@ -646,7 +641,7 @@ public class MispTransClientController {
     }
 
     private String getTimestamp() {
-    	String formatDateTime =  "";
+    	String formatDateTime;
     	final String dateTimeTemplate = "%sT%s+00:00";
     	final String dateFormat = "yyyy-MM-dd";
     	final String timeFormat = "HH:mm:ss";
@@ -676,13 +671,10 @@ public class MispTransClientController {
 
         //Refresh each time so that service does not need to be restarted to refresh the conf values
         //refreshConfig();  If persistTimeStamps() is writing to the Config file and then calling LoadConfig to read them back into Memory, dont need Refresh Here!
-        
-        String latestValFromConfig = Config.getProperty("stixtransclient.poll.endTimestamp" + "." + collection + "." + processType);
-        
-        beginTimestamp = latestValFromConfig;
-        
-        String nexTimestamp = getTimestamp();
-        endTimestamp = nexTimestamp;
+
+        beginTimestamp = Config.getProperty("stixtransclient.poll.endTimestamp" + "." + collection + "." + processType);
+
+        endTimestamp = getTimestamp();
        
         if(beginTimestamp == null || "".equals(beginTimestamp)) {
         	beginTimestamp = epoch;
@@ -703,7 +695,7 @@ public class MispTransClientController {
  	   boolean returnVal=false;
  	   final String pythonWarning = "You're using python 2, it is strongly recommended to use python >=3.5"; 
  	   
- 	   if( inStr.indexOf(pythonWarning) >=0) {
+ 	   if( inStr.contains(pythonWarning)) {
  		   returnVal=true;
  	   }
 
@@ -721,13 +713,12 @@ public class MispTransClientController {
     private String validateValue(String inStr, String validationProperty) {
     	String retStr="";
 		String[] validValues =  Config.getProperty(validationProperty).split(",");
-		
-		for(int i=0; i<  validValues.length; i++) {
-			if(validValues[i].equals(inStr)) {
-				retStr = validValues[i];
-			}
-		}
-    	
+
+		for (String validValue: validValues) {
+		    if (validValue.equals(inStr)) {
+		        retStr = validValue;
+            }
+        }
     	return retStr;
     }
 	
@@ -736,7 +727,7 @@ public class MispTransClientController {
 			try {
 				br.close();
 			} catch (IOException e) {
-				log.error("safeCloseBR",e);
+				log.error("Exception when trying to close Error Stream: {}", e.getMessage());
 			}
 		}
 	}
