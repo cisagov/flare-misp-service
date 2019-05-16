@@ -24,23 +24,24 @@ public class InitializeQuartzJob implements Job
 	private String urlStr = Config.getProperty("mtc.baseurl") + "?processType=" + Config.getProperty("mtc.processtype");
 
 	public void execute(JobExecutionContext context) throws RuntimeException {
-		URI uri = null;
 		try {
-			uri = new URI(urlStr);
+			URI uri = new URI(urlStr);
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 			ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-			
-			if (response.getStatusCode() != HttpStatus.OK) {
+
+			if (response.getStatusCode() == HttpStatus.OK) {
+				log.info("Received OK status from {}", urlStr);
+			} else {
 				log.error("Received status code {}", response.getStatusCodeValue());
 			}
-			
+
 			log.info("Initialize quartz received response body: {}",response.getBody());
 
 		  } catch (URISyntaxException e) {
-			  log.error("Error: URI {} is a malformed URL: {}", uri, e.getMessage());
+			  log.error("Error: Malformed URL: {} {}", urlStr, e.getMessage());
 		  }
 	}
 }
