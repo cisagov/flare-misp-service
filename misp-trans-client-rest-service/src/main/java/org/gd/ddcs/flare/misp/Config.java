@@ -39,7 +39,10 @@ public class Config {
 	protected static String getProperty(String key) {
 		return DEFAULT_PROPS.getProperty(key);
 	}
-	
+
+	/**
+	 * Note: Writes to config.properties file
+	 */
 	static void setProperty(String key, String value) {
 		FileWriter fw = null;
 		try ( FileInputStream fis = new FileInputStream(new File(CONFIG_LOCATION));

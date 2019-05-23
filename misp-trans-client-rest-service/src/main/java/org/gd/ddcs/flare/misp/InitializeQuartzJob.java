@@ -17,12 +17,23 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * The 'Job' interface basically wants us to to define what code must be executed when it's time to do something.
+ */
 @DisallowConcurrentExecution
 public class InitializeQuartzJob implements Job
 {
     private static Logger log = LoggerFactory.getLogger(InitializeQuartzJob.class);
 	private String urlStr = Config.getProperty("mtc.baseurl") + "?processType=" + Config.getProperty("mtc.processtype");
 
+	/**
+	 * This method defines the 'job' that the Quartz Scheduler will execute
+	 *
+	 * This job generates an HTTP request (to this same REST service)
+	 * It will start a one-time poll via CTI Toolkit, to search for STIX on the TAXI Server,
+	 * convert it to MISP event and then upload it to the MISP Server.
+	 * (Assuming that ‘mtc.processtype’ config property is set to  the string ‘stixToMisp’)
+	 */
 	public void execute(JobExecutionContext context) throws RuntimeException {
 		try {
 			URI uri = new URI(urlStr);
