@@ -1,8 +1,9 @@
-This application is a service that transfers Stix Events from a Stix Server to a Misp Server.
+This application is a service that transfers STIX Events from a STIX Server to a MISP Server.
 
-To generate encryption password:
+To generate encrypted password:
 
-The encryption library (Encryption.jar) is located at config folder.  To generate the encryption password
+The encryption library (Encryption.jar) is located in the config folder.
+To generate an encrypted password run the following command in terminal:
 java -cp Encryption.jar xor.bcmcgroup.Main <password> <encryptionKey>
 
 *** Keys and Certs ***
@@ -69,7 +70,7 @@ The script performs the following steps:
 
 * TARs up the existing install in a time stamped file that is written to /tmp.
 * Created output directory /opt/mtc/out
-* Installs files nececasry to perfom unit tests to /opt/mtc/config
+* Installs files necessary to perform unit tests to /opt/mtc/config
 * Runs mvn clean package, which runs the unit tests and builds the JAR file
 * Packages the JAR and all the application related files in a TAR file which can then be unTARed to /opt/mtc
 * Once the TAR file has been unpacked, run /opt/mtc/runFLAREmispService.sh to launch the application
