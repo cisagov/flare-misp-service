@@ -25,7 +25,7 @@ sudo chmod 775 /opt/mtc/config/*
 
 sudo rm -rf ./deploy
 
-mvn clean package
+mvn clean package -DskipTests
 
 mkdir -p ./deploy/config
 cp ./target/*.jar ./deploy

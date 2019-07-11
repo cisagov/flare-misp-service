@@ -10,26 +10,26 @@ import java.util.Properties;
 
 import org.apache.commons.configuration.ConfigurationException;
 
-//import javax.naming.ConfigurationException;
-
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.PropertiesConfigurationLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/*
+/**
  * Reads config properties from config file
  */
 public class Config {
     private static Logger log = LoggerFactory.getLogger(Config.class);
-	private static Properties defaultProps = new Properties();
+	private static final Properties DEFAULT_PROPS = new Properties();
+    private static final String CONFIG_LOCATION = "config/config.properties";
 	static {
-		try (FileInputStream in = new FileInputStream("config/config.properties")){
-			defaultProps.load(in);
+		try (FileInputStream in = new FileInputStream(CONFIG_LOCATION)){
+			DEFAULT_PROPS.load(in);
 		}
 		catch(FileNotFoundException e) {
-			log.error("Loading of configuration properties failed: FileNotFoundException",e);
+			log.error("Error! {} could not be found!", CONFIG_LOCATION, e);
+			System.exit(1);
 		}
 		catch(IOException e) {
 			log.error("Loading of configuration properties failed: IOException",e);
@@ -37,15 +37,16 @@ public class Config {
 	}
 	
 	protected static String getProperty(String key) {
-		return defaultProps.getProperty(key);
+		return DEFAULT_PROPS.getProperty(key);
 	}
-	
-	protected static void setProperty(String key, String value) {
-		FileWriter fw = null; 
-		File file = new File("config/config.properties");
-		
-		try ( FileInputStream fis = new FileInputStream(file);
-			  InputStreamReader isr = new InputStreamReader(fis);){
+
+	/**
+	 * Note: Writes to config.properties file
+	 */
+	static void setProperty(String key, String value) {
+		FileWriter fw = null;
+		try ( FileInputStream fis = new FileInputStream(new File(CONFIG_LOCATION));
+			  InputStreamReader isr = new InputStreamReader(fis)) {
 
 	        PropertiesConfiguration config = new PropertiesConfiguration();
 	        PropertiesConfigurationLayout layout = new PropertiesConfigurationLayout(config);
@@ -57,7 +58,7 @@ public class Config {
 	        config.setProperty(key, value);
 	        
 	        //Write Properties out to file
-			fw = new FileWriter("config/config.properties",false);
+			fw = new FileWriter(CONFIG_LOCATION,false);
 	        layout.save(fw);
 	        
 	        //Refresh loaded Properties
@@ -67,7 +68,7 @@ public class Config {
 			log.error("ConfigurationException occurred in setProperty()",e);
 		}
 		catch(FileNotFoundException e) {
-			log.error("FileNotFoundException occurred in setProperty()",e);
+			log.error("Error! {} could not be found!", CONFIG_LOCATION, e);
 		}
 		catch(IOException e) {
 			log.error("IOException occurred in setProperty()",e);
@@ -79,12 +80,12 @@ public class Config {
 		}
 	}
 	
-	protected static void loadConfig() {
-		try (FileInputStream in = new FileInputStream("config/config.properties");){
-			defaultProps.load(in);
+	static void loadConfig() {
+		try (FileInputStream in = new FileInputStream(CONFIG_LOCATION)) {
+			DEFAULT_PROPS.load(in);
 		}
 		catch(FileNotFoundException e) {
-    		log.error("Exception occurred in loadConfig()",e);
+			log.error("Error! {} could not be found!", CONFIG_LOCATION, e);
 		}
 		catch(IOException e) {
     		log.error("IOException occurred in loadConfig()",e);
