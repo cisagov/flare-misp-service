@@ -1,7 +1,7 @@
 # FLARE MISP Service - scheduler for CTI-toolkit
 The Flare MISP Service has been designed to provide a mechanism to routinely poll content from a TAXII server and make it available in a MISP server.  This service relies heavily upon the CTI Toolkit to do to the transformation of STIX content to MISP and to provide the TAXII server functionality.  It can be configured to run CTI-toolkit commands to pull from a TAXII server and convert the STIX files into MISP format or just download the STIX as xml at regular intervals. 
 
-This service is provided to enable the specific use case of retrieving STIX 1.1.1 content from DHS AIS and loading the content in a MISP Server.  For more information about DHS and establishing access to this service, please see https://uw-cert.gov/ais.
+This service is provided to enable the specific use case of retrieving STIX 1.1.1 content from DHS AIS and loading the content in a MISP Server.  For more information about DHS and establishing access to this service, please see https://us-cert.gov/ais.
 
 
 ## Table of Contents
