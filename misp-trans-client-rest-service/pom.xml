@@ -47,18 +47,6 @@
 			<groupId>org.quartz-scheduler</groupId>
 			<artifactId>quartz</artifactId>
 			<version>2.2.1</version>
-		</dependency>		
-		
-		<dependency>
-			<groupId>xor.flare</groupId>
-			<artifactId>utils</artifactId>
-			<version>1.0.5-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-slf4j-impl</artifactId>
-                </exclusion>
-            </exclusions>
 		</dependency>
 		
     </dependencies>
