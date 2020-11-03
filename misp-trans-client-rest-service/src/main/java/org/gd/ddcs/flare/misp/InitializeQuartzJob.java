@@ -35,6 +35,8 @@ public class InitializeQuartzJob implements Job
 	 * (Assuming that ‘mtc.processtype’ config property is set to  the string ‘stixToMisp’)
 	 */
 	public void execute(JobExecutionContext context) throws RuntimeException {
+		log.info("Removed CTI Toolkit call - this is a placeholder");
+		/* Original CTI Toolkit
 		try {
 			URI uri = new URI(urlStr);
 			RestTemplate restTemplate = new RestTemplate();
@@ -54,5 +56,6 @@ public class InitializeQuartzJob implements Job
 		  } catch (URISyntaxException e) {
 			  log.error("Error: Malformed URL: {} {}", urlStr, e.getMessage());
 		  }
+	   */
 	}
 }

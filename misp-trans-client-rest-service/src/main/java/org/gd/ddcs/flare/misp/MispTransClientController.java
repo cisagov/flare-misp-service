@@ -71,7 +71,7 @@ public class MispTransClientController {
     	
     	//Assume process has failed until evidence of success is discovered
     	String status = "Failed";  
-    	String detailedStatus;
+    	String detailedStatus = "";
     	
     	//ArrayLists to capture exceptions, and warnings
     	ArrayList<String>errorAL = new ArrayList<>();
@@ -121,7 +121,8 @@ public class MispTransClientController {
 	    		}
 	    		
 	    		validatedProcessType = this.validateValue(processType,"mtc.processtype.validvalues"); 
-    			
+
+	    		// In order to support leaving a space for a command here, wrapped this in an if.
     			if("".equals(validatedProcessType)) {
     				log.error("Invalid Process Type:" + processType);
 
@@ -140,87 +141,79 @@ public class MispTransClientController {
 	    		//Construct command
 		    	String cmd = getCommandStr(validatedProcessType, validatedCollection);
 		    	//log.info("cmd: " + cmd);;
-		    	
-		    	Process p = Runtime.getRuntime().exec(cmd);
-	            //BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-	            stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-	
-	            // Read the output from the command
-	            String s;
-	            
-	            //while ((s = stdInput.readLine()) != null)
-	            //{
-	            //	log.info(s);
-	            //}
-	            
-	           // Read any errors from the attempted command
-	           while ((s = stdError.readLine()) != null)
-	           {
-	        	    if (s.equals("Exception: didn't get a poll response")) {
-		    			errorAL.add(s);
-			    		log.error(s);
-			    		taxiiServerNotResponding = true;
-		                hasError = true;
-	        	    }
-		        	else if ( s.contains("ERROR") ||
-		        			  s.contains("Error"))
-	        	    {
-		        	    log.info("Error String: " +  s);
-		    			errorAL.add(s);
-			    		log.error(s);
-		                hasError = true;
-	        	    }	        	    
-	        	    else if (s.contains("Exception:")) {
-		    			errorAL.add(s);
-			    		log.error(s);
-		                hasError = true;
-		    		}
-		    		else {
-		    			if(!suppressWarning(s)) {
-		    			  warningAL.add(s);
-			    		  log.info(s);
-		                  hasWarning = true;
-		    			}		                
-		    		}
-	           }
-		    	
-		    	p.waitFor();
-		    	p.destroy();
-		    	
-		    	if(taxiiServerNotResponding) {
-		    		status = "Failed";
-		    		detailedStatus = "Exception: didn't get a poll response";
-		    		log.error(detailedStatus);
-		    	}
-		    	else if(hasError) {
-		    		status = "Failed";
-					String detail = "";
-					StringBuilder detailedMessage = new StringBuilder();
-					for (int i = 0; i < errorAL.size(); ++i) {
-						String error = errorAL.get(i);
-						if(error.contains("unable to create output directory")) {
-							detail = "Unable to create output directory - Verify that stixtransclient.destination.directory is properly configured.";
-						}
-						else if(error.contains("IOError")) {
-							detail = "IOError - Verify that stixtransclient.client.basedir is properly configured and readable.";
-						}
-						detailedMessage.append("Exception: ").append(error).append(detail);
-						if (i < errorAL.size()-1) { //If there are more items after this one
-							detailedMessage.append(",\n");
+		    	if (!"".equals(cmd)) {
+					Process p = Runtime.getRuntime().exec(cmd);
+					//BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+					stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+
+					// Read the output from the command
+					String s;
+
+					//while ((s = stdInput.readLine()) != null)
+					//{
+					//	log.info(s);
+					//}
+
+					// Read any errors from the attempted command
+					while ((s = stdError.readLine()) != null) {
+						if (s.equals("Exception: didn't get a poll response")) {
+							errorAL.add(s);
+							log.error(s);
+							taxiiServerNotResponding = true;
+							hasError = true;
+						} else if (s.contains("ERROR") ||
+								s.contains("Error")) {
+							log.info("Error String: " + s);
+							errorAL.add(s);
+							log.error(s);
+							hasError = true;
+						} else if (s.contains("Exception:")) {
+							errorAL.add(s);
+							log.error(s);
+							hasError = true;
+						} else {
+							if (!suppressWarning(s)) {
+								warningAL.add(s);
+								log.info(s);
+								hasWarning = true;
+							}
 						}
 					}
 
-					detailedStatus = detailedMessage.toString();
-		    		log.error(detailedStatus);
-		    	}
-		    	else if(hasWarning) {
-		    		status = "Success";
-		    		detailedStatus = "Completed with warnings";
-		    	}
-		    	else {
-		    		status = "Success";
-		    		detailedStatus = "Completed successfully";
-		    	}
+					p.waitFor();
+					p.destroy();
+
+					if (taxiiServerNotResponding) {
+						status = "Failed";
+						detailedStatus = "Exception: didn't get a poll response";
+						log.error(detailedStatus);
+					} else if (hasError) {
+						status = "Failed";
+						String detail = "";
+						StringBuilder detailedMessage = new StringBuilder();
+						for (int i = 0; i < errorAL.size(); ++i) {
+							String error = errorAL.get(i);
+							if (error.contains("unable to create output directory")) {
+								detail = "Unable to create output directory - Verify that stixtransclient.destination.directory is properly configured.";
+							} else if (error.contains("IOError")) {
+								detail = "IOError - Verify that stixtransclient.client.basedir is properly configured and readable.";
+							}
+							detailedMessage.append("Exception: ").append(error).append(detail);
+							if (i < errorAL.size() - 1) { //If there are more items after this one
+								detailedMessage.append(",\n");
+							}
+						}
+
+						detailedStatus = detailedMessage.toString();
+						log.error(detailedStatus);
+					} else if (hasWarning) {
+						status = "Success";
+						detailedStatus = "Completed with warnings";
+					} else {
+						status = "Success";
+						detailedStatus = "Completed successfully";
+					}
+				}
 	    	}
 	    	else {
 	    		status = "Failed";
@@ -261,7 +254,8 @@ public class MispTransClientController {
                             this.getEndTimestamp()
         					);
     }
-    
+
+    // Remove the stixToMisp Command - Make this blank for CTI Toolkit removal
     private String getCommandStr(String processType, String collection)  {
      	List<String> validProcessTypes = new ArrayList<>();
     	
@@ -270,7 +264,7 @@ public class MispTransClientController {
     	validProcessTypes.add("stixToMisp");
     	validProcessTypes.add("xmlOutput");
  
-    	String qualifiedPythonCommand = Config.getProperty("bin.filepath") + "/" + Config.getProperty("python.command");
+    	String qualifiedPythonCommand = Config.getProperty("bin.filepath") + "/"; //+ Config.getProperty("python.command");
     	String pollUrl = Config.getProperty("stixtransclient.poll.url"); 
 
     	
@@ -283,7 +277,7 @@ public class MispTransClientController {
     	
     	//outputType (preserve leading, and trailing spaces)
     	// --xml_output 
-    	// --misp 
+    	// --misp
     	String outputType = " " + Config.getProperty("stixtransclient.output.type.misp") + " "; 
     	
     	String destinationDirectory = Config.getProperty("stixtransclient.destination.directory");
@@ -299,7 +293,8 @@ public class MispTransClientController {
     	if ( !validProcessTypes.contains(processType) )  {
     		throw new IllegalArgumentException("Invalid Process Type: " + processType);
     	}
-  
+
+    	/* Removed CTI Toolkit call
     	if("stixToMisp".equals(processType) ) {
             // Sample stixToMisp command:
     		//
@@ -308,7 +303,8 @@ public class MispTransClientController {
     		// --key FLAREclient1.key 
     		// --cert FLAREclient1.crt 
     		// --taxii --misp --misp-url http://10.23.218.173 --misp-key uOeRefdtdia8oOcGZB9YHhhypidoW9PKMM2oIXZx --collection NCPS_Automated 
-    		
+
+			//
     		commandStr = qualifiedPythonCommand
         			+ "  --poll-url " + pollUrl
         			+ " --key " + clientKey
@@ -335,8 +331,8 @@ public class MispTransClientController {
 				commandStr = commandStr + " --misp-published ";
 			}
 
-		}
-    	else if("xmlOutput".equals(processType) ) {
+		}*/
+    	if("xmlOutput".equals(processType) ) { // changed from else if
             // Sample xmlOutput command:
     		//
    		    // /usr/local/bin/stixtransclient.py  
@@ -361,7 +357,7 @@ public class MispTransClientController {
         }
     	else {
     		log.info("Unknown processType: " + processType);  
-        	commandStr = qualifiedPythonCommand;
+        	commandStr = ""; // qualifiedPythonCommand; - removed base cti toolkit command.
     	}
     	log.debug("CTI-Toolkit Raw Command: ");
     	log.debug(commandStr);

@@ -12,3 +12,7 @@
 #All Deploy folder files except the tar
 deploy/*
 !deploy/FLAREmispService.tar
+.idea
+**/.idea/**
+
+*.iml
