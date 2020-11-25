@@ -1,0 +1,6 @@
+{
+  "logger_level": "ERROR",
+  "misp-verifycert": false,
+  "state-file": "",
+  "subscription-id": ""
+}

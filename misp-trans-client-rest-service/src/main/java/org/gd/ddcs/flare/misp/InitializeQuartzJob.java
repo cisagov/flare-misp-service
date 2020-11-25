@@ -29,14 +29,10 @@ public class InitializeQuartzJob implements Job
 	/**
 	 * This method defines the 'job' that the Quartz Scheduler will execute
 	 *
-	 * This job generates an HTTP request (to this same REST service)
-	 * It will start a one-time poll via CTI Toolkit, to search for STIX on the TAXI Server,
-	 * convert it to MISP event and then upload it to the MISP Server.
-	 * (Assuming that ‘mtc.processtype’ config property is set to  the string ‘stixToMisp’)
+	 * This job generates an HTTP request to this same REST service - to trigger the controller
+	 * The controller will poll via the cti-toolkit to get stix files then use the MISP Service to transform the files.
 	 */
 	public void execute(JobExecutionContext context) throws RuntimeException {
-		log.info("Removed CTI Toolkit call - this is a placeholder");
-		/* Original CTI Toolkit
 		try {
 			URI uri = new URI(urlStr);
 			RestTemplate restTemplate = new RestTemplate();
@@ -56,6 +52,5 @@ public class InitializeQuartzJob implements Job
 		  } catch (URISyntaxException e) {
 			  log.error("Error: Malformed URL: {} {}", urlStr, e.getMessage());
 		  }
-	   */
 	}
 }

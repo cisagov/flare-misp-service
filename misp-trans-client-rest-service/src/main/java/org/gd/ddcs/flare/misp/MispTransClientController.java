@@ -285,7 +285,6 @@ public class MispTransClientController {
     	String mispKey = EncryptionUtil.decrypt(Config.getProperty("stixtransclient.misp.key"));	
 
 
-    	
     	setTimestamps(collection,processType);
 
     	String commandStr;
@@ -294,44 +293,38 @@ public class MispTransClientController {
     		throw new IllegalArgumentException("Invalid Process Type: " + processType);
     	}
 
-    	/* Removed CTI Toolkit call
     	if("stixToMisp".equals(processType) ) {
             // Sample stixToMisp command:
     		//
     		// stixtransclient.py 
     		// --poll-url https://10.23.218.172:8443/flare/taxii11/poll/ 
-    		// --key FLAREclient1.key 
-    		// --cert FLAREclient1.crt 
+    		// --taxii-key FLAREclient1.key
+    		// --taxii-cert FLAREclient1.crt
     		// --taxii --misp --misp-url http://10.23.218.173 --misp-key uOeRefdtdia8oOcGZB9YHhhypidoW9PKMM2oIXZx --collection NCPS_Automated 
 
 			//
     		commandStr = qualifiedPythonCommand
-        			+ "  --poll-url " + pollUrl
-        			+ " --key " + clientKey
-        			+ " --cert " + clientCert 
-        			+ " --taxii "
-        			+ outputType 
+        			+ " --poll-url " + pollUrl
+        			+ " --taxii-key " + clientKey
+        			+ " --taxii-cert " + clientCert
         			+ " --misp-url " + mispUrl
         			+ " --misp-key " + mispKey
         			+ " --collection " + collection
         			+ " --begin-timestamp " + this.getBeginTimestamp()
         			+ " --end-timestamp " + this.getEndTimestamp()
+        			+ " --output " + "misp"
         			;
-    		
-    		
-        	// --misp_published  (Passing this argument will automatically set the published value to True.
-    		//      NOTE: DONT PASS A NAME VALUE PAIR for this argument. Just it's existance is required. 
-    		//      Passing a value with this argument will break the python command itself.
-        	//      MISP Events wont require approval from User in order to be disseminated to other MISP Servers)
+
+        	// THIS CONFIG OPTION IS NO LONGER NEEDED - LEAVE THE CONFIG HERE IN CASE IT IS LATER
         	String mispPublished = Config.getProperty("stixtransclient.misp.published");
 			if (mispPublished == null || mispPublished.isEmpty()) {
 				log.info("mispPublished NOT detected in configuration or its value is emptystring.");
 			} else {
 				log.info("mispPublished property detected in configuration. Appending argument to command.");
-				commandStr = commandStr + " --misp-published ";
+				//commandStr = commandStr + " --misp-published ";
 			}
 
-		}*/
+		}*/ // This will error everytime because the Stix save method in the python is not implemented
     	if("xmlOutput".equals(processType) ) { // changed from else if
             // Sample xmlOutput command:
     		//
@@ -359,7 +352,7 @@ public class MispTransClientController {
     		log.info("Unknown processType: " + processType);  
         	commandStr = ""; // qualifiedPythonCommand; - removed base cti toolkit command.
     	}
-    	log.debug("CTI-Toolkit Raw Command: ");
+    	log.debug("Stix Misp Converter Raw Command: ");
     	log.debug(commandStr);
     	return commandStr;
     }
