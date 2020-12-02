@@ -22,6 +22,22 @@ The equivalent is available in PyMISP with the `upload_stix` method. The only di
 
 MISP creates then an event for each file ingested, using the [stix import](https://github.com/MISP/MISP/blob/2.4/app/files/scripts/stix2misp.py) or [stix2 import](https://github.com/MISP/MISP/blob/2.4/app/files/scripts/stix2/stix2misp.py) scripts.
 
+### Installation
+Installation is streamlined using Python's setuptools. The following
+
+#. Install prerequisites required by setuptools and libtaxii::
+
+    $ sudo apt-get install python-pip python-dev libxml2-dev libxslt1-dev libz-dev
+
+#. Install the stix_trans_client tool::
+
+    $ sudo pip install stix_trans_client
+
+That's it. You should now be able to run utilities, such as
+``stix_trans_client.py``::
+
+    $ stix_trans_client.py -h
+
 ### Usage
 
 Depending of the python environment set in your MISP server, you will have to use the correct python command in order to be sure to reach the correct environment containing all the required libraries and dependencies:
@@ -29,26 +45,21 @@ Depending of the python environment set in your MISP server, you will have to us
 - If any other python environment is set instead, use the corresponding command. As an example, the built-in python3 provided with most of the linux distribution is available with a simple `python3`
 **Please replace the python command in the next examples with your own setting if needed**
 
-In order to connect to MISP, we need an URL and an API key.  
-You can either pass those parameters when you call the `ingest_python.py` script, or put them within the `setup.json` file that is passed by default to the script, or event use another setup file as long as it contains the same required fields:
+In order to connect to MISP, we need an URL and an API key:
+
+Args:
 - `misp_url`: the URL of your MISP server
 - `misp_key`: your MISP API key
+- `poll-url`: taxii server url to poll for stix files
+- `taxii-key`: taxii server key
+- `taxii-cert`: taxii server cert
+- `collection`: taxii collection to poll
+- `begin-timestamp`: beginning timestamp to poll taxii server
+- `end-timestamp`: end timestamp to poll taxii server
+- `output`: misp or xml_output - based upon server config 
+
+Config:
 - `misp_verifycert`: (`true` or `false`) to check or not the validity of the certificate
-
-We also require here a STIX version and the path to the files to ingest (**Please use file names instead of directory names**)
-
-As just mentioned, the setup file is used by default, and it avoids empty value issues for the required parameters. It is thus possible to simply run the following:
-```
-# STIX 1
-python3 ingest_stix.py --version 1 --path _PATH_TO_YOUR_FILES_/stix_files*.xml
-# STIX 2
-python3 ingest_stix.py --version 2 --path _PATH_TO_YOUR_FILES_/stix_files*.json
-```
-
-But you can also overwrite one of the required MISP setups:
-```
-# Overwrite the SSL verification
-python3 ingest_stix.py --version 1 --path _PATH_TO_YOUR_FILES_/stix_files*.xml --misp_verifycert
-# Simply define all the parameters without using the setup file
-python3 ingest_stix.py --version 1 --path _PATH_TO_YOUR_FILES_/stix_files*.xml --misp_url _MISP_URL_ --misp_key _YOUR_API_KEY_ --misp_verifycert
-```
+- `logger_level`: the level of the logger... ERROR, WARNING, INFO, DEBUG
+- `state-file`: path to the file that maintains the poll times - required along with timestamp options
+- `subscription-id`: a subscription id for the poll request
