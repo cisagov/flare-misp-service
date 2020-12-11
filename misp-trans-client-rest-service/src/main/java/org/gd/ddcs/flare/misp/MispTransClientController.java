@@ -324,7 +324,7 @@ public class MispTransClientController {
 				//commandStr = commandStr + " --misp-published ";
 			}
 
-		}*/ // This will error everytime because the Stix save method in the python is not implemented
+		} // This will error everytime because the Stix save method in the python is not implemented
     	if("xmlOutput".equals(processType) ) { // changed from else if
             // Sample xmlOutput command:
     		//
