@@ -1,6 +1,8 @@
 {
+  "ais_markings": false,
+  "ais_default_tlp": "GREEN",
   "logger_level": "ERROR",
-  "misp-verifycert": false,
-  "state-file": "",
-  "subscription-id": ""
+  "misp_verifycert": false,
+  "state_file": "",
+  "subscription_id": ""
 }

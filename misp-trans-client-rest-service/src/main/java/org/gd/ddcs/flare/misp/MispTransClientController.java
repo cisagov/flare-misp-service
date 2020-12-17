@@ -90,6 +90,8 @@ public class MispTransClientController {
 	    	log.info("Processing events...");
 
 			boolean resourcesAvailable = checkResources();
+			//@TODO remove
+			resourcesAvailable = true;
 	    	
 	    	if(resourcesAvailable) {
 	    		//If collection is not defined, use default value
@@ -264,7 +266,7 @@ public class MispTransClientController {
     	validProcessTypes.add("stixToMisp");
     	validProcessTypes.add("xmlOutput");
  
-    	String qualifiedPythonCommand = Config.getProperty("bin.filepath") + "/"; //+ Config.getProperty("python.command");
+    	String qualifiedPythonCommand = Config.getProperty("bin.filepath") + "/" + Config.getProperty("python.command");
     	String pollUrl = Config.getProperty("stixtransclient.poll.url"); 
 
     	
@@ -325,7 +327,7 @@ public class MispTransClientController {
 			}
 
 		} // This will error everytime because the Stix save method in the python is not implemented
-    	if("xmlOutput".equals(processType) ) { // changed from else if
+    	else if("xmlOutput".equals(processType) ) {
             // Sample xmlOutput command:
     		//
    		    // /usr/local/bin/stixtransclient.py  
@@ -346,7 +348,9 @@ public class MispTransClientController {
         			+ " --collection " + collection
         			+ " --begin-timestamp " + this.getBeginTimestamp()
         			+ " --end-timestamp " + this.getEndTimestamp()
-        			+ outputType + destinationDirectory;        		
+        			+ outputType + destinationDirectory;
+
+    		log.error("xmlOutput option not implemented in python - this will fail");
         }
     	else {
     		log.info("Unknown processType: " + processType);  

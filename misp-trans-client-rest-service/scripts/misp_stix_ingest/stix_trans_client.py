@@ -1,5 +1,6 @@
 import dateutil
-import json
+#import json
+import configparser
 import logging
 import os
 import sys
@@ -17,6 +18,8 @@ from misp_stix_ingest.certau.util.stix.helpers import package_tlp
 
 
 _LOGGER = logging.getLogger(__name__)
+if not os.path.isdir(os.path.join(os.getcwd(), 'logs')):
+    os.mkdir(os.path.join(os.getcwd(), 'logs'))
 rotating_file_handler = RotatingFileHandler(os.path.join(os.getcwd(), 'logs', 'stix_trans_client.log'),
                                             backupCount=3)
 rotating_file_handler.setLevel(logging.DEBUG)
@@ -57,30 +60,43 @@ def main():
     # Args are variables sent by the Java App /-\ Options are values in the python config.json folder and are static per run
     parser = ArgumentParser(description='')
     parser.add_argument('--poll-url', required=True, help='URL of the TAXII instance you want to connect to in order to get STIX files.')
-    parser.add_argument('--taxii-key', required=True, help='KEY file for the TAXII connection.')
-    parser.add_argument('--taxii-cert', required=True, help='CRT file for the TAXII connection.')
+    parser.add_argument('--taxii-key', default="", help='KEY file for the TAXII connection.')
+    parser.add_argument('--taxii-cert', default="", help='CRT file for the TAXII connection.')
+    parser.add_argument('--taxii-ca-file', default="", dest='ca_file', help='CA file for the TAXII connection.')
     parser.add_argument('--misp-url', required=True, help='URL of the MISP instance you want to connect to.')
     parser.add_argument('--misp-key', required=True, help='API key of the user you want to use.')
     parser.add_argument('--collection', required=True, help='TAXII Collection to poll')
     parser.add_argument('--begin-timestamp', required=True, help='Beginning Poll Timestamp from TAXII')
     parser.add_argument('--end-timestamp', required=True, help='End Poll Timestamp from TAXII')
     parser.add_argument('--output', default='misp', choices=['misp', 'xml_output'])
+    parser.add_argument('--taxii-username', default="", dest="username", help="The taxii server username if basic auth is used")
+    parser.add_argument('--taxii-password', default="", dest="password", help="The taxii server password if basic auth is used")
     args = parser.parse_args()
-    with open('config.json', 'rt', encoding='utf-8') as f:
-        options = json.loads(f.read())
-    _LOGGER.setLevel(options.get('logger_level', logging.ERROR))
-    for k, v in options.items():
-        _LOGGER.debug(f'Args - Parameter {k}: {v}')
+    #with open('config.json', 'r', encoding='utf-8') as f:
+        #options = json.loads(f.read())
+    #@Todo Add Env Var to setup instructions.
+    config_path = os.getenv("FLARE_MISP_SERVICE_PY_CONF", os.path.join(os.getcwd(), "config.ini"))
+    options = configparser.ConfigParser()
+    options.read(config_path)
+    options_default = options['Default']
+    options_conversion = options['Conversion']
+    options_tlp = options['AIS_TLP_Refactor']
+    _LOGGER.setLevel(options_default.get('logger_level', logging.ERROR))
     for k, v in args.__dict__.items():
+        _LOGGER.debug(f'Args - Parameter {k}: {v}')
+    for k, v in options_conversion.items():
         _LOGGER.debug(f'Options - Parameter {k}: {v}')
+    if options.getboolean('Conversion', 'ais_markings'):
+        for k, v in options_tlp.items():
+            _LOGGER.debug(f'Options - Parameter {k}: {v}')
     try:
         # Poll TAXII for files
         _LOGGER.info("Processing a TAXII message")
         taxii_client = SimpleTaxiiClient(
             username=args.username,
             password=args.password,
-            key_file=args.key,
-            cert_file=args.cert,
+            key_file=args.taxii_key,
+            cert_file=args.taxii_cert,
             ca_file=args.ca_file,
         )
 
@@ -105,10 +121,10 @@ def main():
         content_blocks = taxii_client.poll(
             poll_url=args.poll_url,
             collection=args.collection,
-            subscription_id=options.subscription_id,
+            subscription_id=options_conversion['subscription_id'],
             begin_timestamp=begin_timestamp,
             end_timestamp=end_timestamp,
-            state_file=options.state_file,
+            state_file=options_conversion['state_file'],
         )
 
         source = TaxiiContentBlockSource(
@@ -122,17 +138,18 @@ def main():
             package = source_item.stix_package
             if package is not None:
                 _LOGGER.info("Processing TAXII content block - package - %s", package)
-                if options.ais_marking:
-                    tlp = package_tlp(package) or options.ais_default_tlp
+                if options['ais_marking']:
+                    # Probably want to test what types these are supposed to be for the config file
+                    tlp = package_tlp(package) or options_conversion['ais_default_tlp']
                     ais_refactor(
                         package=package,
-                        proprietary=options.ais_proprietary,
-                        consent=options.ais_consent,
+                        proprietary=options_tlp['ais_proprietary,'],
+                        consent=options_tlp['ais_consent'],
                         color=tlp,
-                        country=options.ais_country,
-                        industry=options.ais_industry_type,
-                        admin_area=options.ais_administrative_area,
-                        organisation=options.ais_organisation,
+                        country=options_tlp['ais_country'],
+                        industry=options_tlp['ais_industry_type'],
+                        admin_area=options_tlp['ais_administrative_area'],
+                        organisation=options_tlp['ais_organisation']
                     )
                 if options.xml_output:
                     # This will raise an error as it's not implemented
