@@ -30,11 +30,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <scope>test</scope>
-        </dependency>
+
         
 		<!-- https://mvnrepository.com/artifact/commons-configuration/commons-configuration -->
 		<dependency>
@@ -48,25 +44,12 @@
 			<artifactId>quartz</artifactId>
 			<version>2.2.1</version>
 		</dependency>		
-		
-		<dependency>
-			<groupId>xor.flare</groupId>
-			<artifactId>utils</artifactId>
-			<version>1.0.5-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-slf4j-impl</artifactId>
-                </exclusion>
-            </exclusions>
-		</dependency>
-		
+
     </dependencies>
 
     <properties>
         <java.version>1.8</java.version>
     </properties>
-
 
     <build>
         <plugins>
