@@ -14,6 +14,10 @@ sudo chmod 775 /opt/mtc/out
 sudo mkdir -p /opt/mtc/logs
 sudo chmod 775 /opt/mtc/logs
 
+#Supporting /avro subdir
+sudo mkdir -p /opt/mtc/avro
+sudo chmod 775 /opt/mtc/avro
+
 #Supporting /config subdir
 sudo mkdir -p /opt/mtc/config
 sudo chmod 775 /opt/mtc/config
@@ -51,6 +55,8 @@ echo "# And created on the target environment when the tarball is unpacked. " >>
 mkdir -p ./deploy/out
 cp ./out/* ./deploy/out
 
+#Create avro directory
+mkdir -p ./deploy/avro
 
 #Copy all JAR files and dependencies to the 'deploy' subdirectory.
 cp ./bin/* ./deploy
