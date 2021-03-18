@@ -1,3 +1,3 @@
 #!/bin/bash
 java -version
-java -Duser.timezone=UTC -jar mtc-rest-service-1.0.1.jar &
+java -Duser.timezone=UTC -jar mtc-rest-service-2.4.132.jar &

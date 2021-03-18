@@ -1,0 +1,8 @@
+{"namespace": "flare-misp-service.avro",
+ "type": "record",
+ "name": "Tracker",
+ "fields": [
+     {"name": "stix_id", "type": "string"},
+     {"name": "event_id", "type": ["string", "null"]}
+ ]
+}

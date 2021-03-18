@@ -9,9 +9,9 @@ import java.io.InputStreamReader;
 import java.util.Properties;
 
 import org.apache.commons.configuration.ConfigurationException;
-
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.PropertiesConfigurationLayout;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
