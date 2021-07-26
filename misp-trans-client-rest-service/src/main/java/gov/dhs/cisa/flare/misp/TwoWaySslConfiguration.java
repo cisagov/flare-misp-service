@@ -11,7 +11,7 @@ import java.security.cert.CertificateException;
 
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -59,7 +59,7 @@ public class TwoWaySslConfiguration {
 
 		SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
 				new SSLContextBuilder()
-						.loadTrustMaterial(null, new TrustSelfSignedStrategy())
+						.loadTrustMaterial(null, new TrustAllStrategy())
 						.loadKeyMaterial(keyStore, keyPassword.toCharArray()).build()
 				, NoopHostnameVerifier.INSTANCE);
 		CloseableHttpClient httpClient = HttpClients.custom()
