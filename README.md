@@ -188,8 +188,20 @@ The /logs and /out directories should be empty (initially).
     e.	Modify property: stixtransclient.misp.url to have the IP for the MISP Server.
 	
 #### 7)	Tweak the /opt/mtc/config/application.properties file to appropriate values for the Deployed Environment.
-    a.	Verify the logging property: logging.level.org.gd.ddcs.flare.misp = ERROR   (can be WARN, INFO, or DEBUG for additional information)
-    b.	Verify the logging property: logging.level.org.springframework.web = ERROR  (can be WARN, INFO, or DEBUG for additional information)
+    a.  Create a new P12 keystore using both your client certificate and private key
+
+          openssl pkcs12 -export -in client.crt -inkey client.key -name client -out clientkeystore.p12
+
+    b.  Modify SSL Keystore as follows
+                
+          client.ssl.key-store=file:config/clientkeystore.p12
+
+    c.  Ensure Two-way SSL is set to true
+
+          2way.ssl.auth=true
+
+    d.	Verify the logging property: logging.level.org.springframework.web = ERROR  (can be WARN, INFO, or DEBUG for additional information)
+    
    
 #### 8) Start the service
 See [Starting FLARE MISP Service](#starting)
