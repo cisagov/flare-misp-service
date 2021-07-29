@@ -177,20 +177,7 @@ The /logs and /out directories should be empty (initially).
     b. They default to the location /opt/mtc/config
     c. The key and cert files are specific to the FlareSuite TAXII Server
 
-#### 6) Encrypt the private key password:
-
-The encryption library (Encryption.jar) is located in the config folder.
-To generate an encrypted password run the following command in terminal:
-
-```java -cp Encryption.jar xor.bcmcgroup.Main <password> <encryptionKey>```
-
-Then in the /opt/mtc/config/config.properties file set the values for:
-
-    encKey=(Encryption key used)
-    stixtransclient.misp.key=(Encrypted key value to connect to the MISP server)
-
-
-#### 7)	Adjust remaining /opt/mtc/config/config.properties file values for the Deployed Environment
+#### 6)	Adjust remaining /opt/mtc/config/config.properties file values for the Deployed Environment
     Modify property: bin.filepath to stixtransclient.py location
     a.	Modify property: stixtransclient.client.key to be equal to path and name of the key file from step #5
     b. 	Modify property: stixtransclient.client.cert to be equal to path and name of the certificate file from step #5
@@ -200,30 +187,42 @@ Then in the /opt/mtc/config/config.properties file set the values for:
         ii.	append the following: /flare/taxii11/poll/
     e.	Modify property: stixtransclient.misp.url to have the IP for the MISP Server.
 	
-#### 8)	Tweak the /opt/mtc/config/application.properties file to appropriate values for the Deployed Environment.
-    a.	Verify the logging property: logging.level.org.gd.ddcs.flare.misp = ERROR   (can be WARN, INFO, or DEBUG for additional information)
-    b.	Verify the logging property: logging.level.org.springframework.web = ERROR  (can be WARN, INFO, or DEBUG for additional information)
+#### 7)	Tweak the /opt/mtc/config/application.properties file to appropriate values for the Deployed Environment.
+    a.  Create a new P12 keystore using both your client certificate and private key
+
+          openssl pkcs12 -export -in client.crt -inkey client.key -name client -out clientkeystore.p12
+
+    b.  Modify SSL Keystore as follows
+                
+          client.ssl.key-store=file:config/clientkeystore.p12
+
+    c.  Ensure Two-way SSL is set to true
+
+          2way.ssl.auth=true
+
+    d.	Verify the logging property: logging.level.org.springframework.web = ERROR  (can be WARN, INFO, or DEBUG for additional information)
+    
    
-#### 9) Start the service
+#### 8) Start the service
 See [Starting FLARE MISP Service](#starting)
 
-#### 10) Stix Data Tracking
+#### 9) Stix Data Tracking
      a. Stix packages downloaded or uploaded to MISP server are tracked using Apache Avro data serialization system.
      b. https://avro.apache.org/
      c. Tracking data file is located under /opt/mtc/avro
      
-#### 11) Ability to filter STIX 1.1.1:
+#### 10) Ability to filter STIX 1.1.1:
 flare-misp-service does not perform any filtering on the packages that come from a TAXII 1.1.1 server (i.e., hailataxi.com).
 One possible option is to get the packages and store them locally using `xmlOutput` process type. Then, write a script
 that process and filter the content from these XML files before posting them to the MISP server.
 
-#### 12) Ability to run with multiple collection
+#### 11) Ability to run with multiple collection
 flare-misp-service does not support the pulling of STIX packages from a TAXII 1.1.1 server using more than one (1) collection.
 One possible option is to run multiple flare-misp-client server where each pull a packages from a different collection than 
 the other flare-misp-service server. It is therefore feasible to run multiple flare-misp-services for use with multiple TAXII 
 1.1.1 servers and MISP servers.
 
-### 13) Additional Notes on Testing FLARE-MISP-SERVICE:
+#### 12) Additional Notes on Testing FLARE-MISP-SERVICE:
 
 It is important to note that the FLARE-MISP-SERVICE software component does not in anyway modifies the content of the STIX files from 
 a TAXII 1.1.1 server before forwarding (via an HTTP Post) to a MISP Server. Furthermore, FLARE-MISP-SERVICE uses STIX ID from the XML Package
