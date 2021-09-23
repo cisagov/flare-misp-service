@@ -104,7 +104,7 @@ public class Taxii11Request {
 		root.appendChild(node);
 
 		String body = toXml(root);
-		log.info("request body:\n {}", body);
+		log.info("request body:\n\n{}", body);
 		return body;
 	}
 }
