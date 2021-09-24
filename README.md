@@ -130,7 +130,8 @@ User:  admin@admin.test
    in order to build the package
    
 3) run the packageDeployment.sh script to pack the built mvn package into a tarball the tarball should be in ~git/FLAREmispService/misp-trans-client-rest-service/deploy/ named FLAREmispService.tar
-
+     
+		./packageDeployment.sh
 
 # <a name="installation"></a>Installation:
 
@@ -148,7 +149,7 @@ Refer to the SAG for more details
 
 #### 3)	Untar the tarball.
 
-```tar –xvf FLAREmispService.tar```
+```sudo tar –xvf FLAREmispService.tar```
 
 It _should_ contain the directories:
 

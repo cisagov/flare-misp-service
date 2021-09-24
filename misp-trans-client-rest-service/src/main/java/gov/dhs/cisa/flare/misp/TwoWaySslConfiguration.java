@@ -46,11 +46,24 @@ public class TwoWaySslConfiguration {
 	@Value("${2way.ssl.auth}")
 	private boolean certAuth;
 
+    @Value("${ctimeout}")
+    private int ctimeout;
+
+    @Value("${rtimeout}")
+    private int rtimeout;
+
 	@Bean
 	public RestTemplate restTemplate() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+
 		if(!certAuth) {
 			log.info("Do not send client certificate.");
-			return new RestTemplate();
+			RestTemplate rt = new RestTemplate();
+            rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+            HttpComponentsClientHttpRequestFactory rtRequestFactory= (HttpComponentsClientHttpRequestFactory) rt
+                .getRequestFactory();
+            rtRequestFactory.setReadTimeout(rtimeout);
+            rtRequestFactory.setConnectTimeout(ctimeout);
+		    return 	new RestTemplate(rtRequestFactory);
 		}
 
 		log.info("Sending client certificate.......");
@@ -68,8 +81,8 @@ public class TwoWaySslConfiguration {
 				.setMaxConnPerRoute(5)
 				.build();
 		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-		requestFactory.setReadTimeout(10000);
-		requestFactory.setConnectionRequestTimeout(10000);
+		requestFactory.setReadTimeout(rtimeout);
+		requestFactory.setConnectionRequestTimeout(ctimeout);
 
 		return new RestTemplate(requestFactory);
 	}
