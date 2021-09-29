@@ -190,7 +190,8 @@ public class Taxii11Response {
             tracker.setEventId(getMispMispEventId(response.getBody()));
             log.info("StixId: {} ------ Status Code: {} ", tracker.getStixId(), tracker.status_code);
         } catch (Exception e) {
-            log.debug(">>> FIELD TO STORE TO MISP:{}, Status: {}", stixId, tracker.getStatusCode());
+            log.info(">>>>>> FIELD TO STORE TO MISP:{}, Status: {}", stixId, tracker.getStatusCode());
+            log.info(">>>>>> Error: {}", e.getMessage());
         }
 
         mispTransHelper.serializeUser(tracker);

@@ -9,6 +9,8 @@
 /misp2.project
 .idea
 
+logs/*
+
 #All Deploy folder files except the tar
 deploy/*
 !deploy/FLAREmispService.tar

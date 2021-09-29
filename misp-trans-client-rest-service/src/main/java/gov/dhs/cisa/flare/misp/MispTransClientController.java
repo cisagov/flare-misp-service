@@ -90,6 +90,8 @@ public class MispTransClientController {
     }
 
     public MispTransClient processMispTransClient(String processType, String collectionName) {
+        String url = Config.getProperty("stixtransclient.poll.baseurl");
+
         try {
             log.info("MispTransClientController:processMispTransClient: ==========> processType: {}", processType);
 
@@ -97,7 +99,6 @@ public class MispTransClientController {
                 collectionName = Config.getProperty("stixtransclient.source.collection");
             }
 
-            String url = Config.getProperty("stixtransclient.poll.baseurl");
             log.info("MispTransClientController:processMispTransClient: to {}", url);
 
             Instant dateStop = Config.getEndTime();
@@ -124,7 +125,8 @@ public class MispTransClientController {
             return new MispTransClient(counter.incrementAndGet(), String.valueOf(response.getStatusCode()), null,
                 processType, collectionName, dateStart.toString(), dateStop.toString());
         } catch (Exception e) {
-            log.info(">>>>>>>>>>>>> Connection Time out.");
+            log.info(">>>>>>>>>>>>> Connection Timeout error occurred : {} ", url);
+            log.info(">>>>>>>>>>>>> Please check the URL, Collection Name, and Authorization");
         }
 
         return null;
