@@ -201,7 +201,7 @@ The /logs and /out directories should be empty (initially).
 
           2way.ssl.auth=true
 
-    d.	Verify the logging property: logging.level.org.springframework.web = ERROR  (can be WARN, INFO, or DEBUG for additional information)
+    d.	Verify the logging property: logging.level.root = INFO  (can be WARN, INFO, or DEBUG for additional information)
     
    
 #### 8) Start the service
