@@ -22,9 +22,6 @@ public class Application {
     private static Logger log = LoggerFactory.getLogger(Application.class);
 
     public static void main(String[] args) {
-        log.info("Logging level is set to INFO");
-	    log.warn("Logging level is set to: WARN");
-	    log.debug("Logging level is set to: DEBUG");
 		//SSL Hostname verification On/Off can be set in applicaiton.properties
 		SSLHostnameVerification.executeConfigration();
 		SpringApplication.run(Application.class, args);
