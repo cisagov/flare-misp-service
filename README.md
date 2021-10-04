@@ -114,6 +114,8 @@ Result:
 URL: http://<MISP URL>/users/login
 User:  admin@admin.test
 
+Note: The FLARE-MISP-SERVICE software component does not modifies the content of the STIX files from 
+      a TAXII 1.1.1 server before forwarding (via an HTTP Post) to a MISP Server and does not set any publication status in MISP Server.
 
 # <a name="packaging"></a>To build the tarball:
 
@@ -130,7 +132,8 @@ User:  admin@admin.test
    in order to build the package
    
 3) run the packageDeployment.sh script to pack the built mvn package into a tarball the tarball should be in ~git/FLAREmispService/misp-trans-client-rest-service/deploy/ named FLAREmispService.tar
-
+     
+		./packageDeployment.sh
 
 # <a name="installation"></a>Installation:
 
@@ -148,7 +151,7 @@ Refer to the SAG for more details
 
 #### 3)	Untar the tarball.
 
-```tar –xvf FLAREmispService.tar```
+```sudo tar –xvf FLAREmispService.tar```
 
 It _should_ contain the directories:
 
@@ -200,7 +203,7 @@ The /logs and /out directories should be empty (initially).
 
           2way.ssl.auth=true
 
-    d.	Verify the logging property: logging.level.org.springframework.web = ERROR  (can be WARN, INFO, or DEBUG for additional information)
+    d.	Verify the logging property: logging.level.root = INFO  (can be WARN, INFO, or DEBUG for additional information)
     
    
 #### 8) Start the service

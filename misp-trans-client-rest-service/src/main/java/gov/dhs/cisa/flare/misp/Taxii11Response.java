@@ -22,207 +22,210 @@ import java.util.List;
 
 @Component
 public class Taxii11Response {
-	private static Logger log = LoggerFactory.getLogger(Taxii11Response.class);
-	public static final String PREFIX_NS = "taxii_11:";
+    private static Logger log = LoggerFactory.getLogger(Taxii11Response.class);
+    public static final String PREFIX_NS = "taxii_11:";
 
-	@Autowired
-	MispTransHelper mispTransHelper;
+    @Autowired
+    MispTransHelper mispTransHelper;
 
-	public static String removeXmlNs(String tag) {
-		if (tag.indexOf(PREFIX_NS) == 0) {
-			return tag.replace(PREFIX_NS, "");
-		}
-		return tag;
-	}
+    public static String removeXmlNs(String tag) {
+        if (tag.indexOf(PREFIX_NS) == 0) {
+            return tag.replace(PREFIX_NS, "");
+        }
+        return tag;
+    }
 
-	public Document processPollResponse(ResponseEntity<String> response) {
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			InputSource is = new InputSource(new StringReader(response.getBody()));
-			Document respDoc = builder.parse(is);
-			log.info("\nDOM Document: {}", respDoc.getNodeName());
-			return respDoc;
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+    public Document processPollResponse(ResponseEntity<String> response) {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
 
-		return null;
-	}
+            InputSource is = new InputSource(new StringReader(response.getBody()));
+            Document respDoc = builder.parse(is);
+            log.debug("\nDOM Document: {}", respDoc.getNodeName());
+            return respDoc;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-	public Node getPollRequest(Document doc) {
-		NodeList nodes = doc.getChildNodes();
-		for (int i = 0; i < nodes.getLength(); i++) {
-			Node curNode = nodes.item(i);
-			String tag = removeXmlNs(curNode.getNodeName());
-			if (tag.contains("Poll_Response")) {
-				log.info("Found Poll_Response.");
-				return curNode;
-			}
-		}
-		log.info("Poll_Response is not found");
-		return null;
-	}
+        return null;
+    }
 
-	public List<Node> getContentBlocks(Node pollResponse) {
-		List<Node> contentBlocks = new ArrayList<Node>();
-		NodeList nodes = pollResponse.getChildNodes();
+    public Node getPollRequest(Document doc) {
+        NodeList nodes = doc.getChildNodes();
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node curNode = nodes.item(i);
+            String tag = removeXmlNs(curNode.getNodeName());
+            if (tag.contains("Poll_Response")) {
+                log.info("Found Poll_Response.");
+                return curNode;
+            }
+        }
+        log.info("Poll_Response is not found");
+        return null;
+    }
 
-		for (int i = 0; i < nodes.getLength(); i++) {
-			Node curNode = nodes.item(i);
-			if (curNode.getNodeType() == Node.TEXT_NODE) {
-				continue;
-			}
-			String tag = removeXmlNs(curNode.getNodeName());
-			if (tag.contains("Content_Block")) {
-				contentBlocks.add(curNode);
-			} else {
-				log.debug("Found {}", tag);
-			}
-		}
-		log.info("Found {} Content_Blocks", contentBlocks.size());
-		return contentBlocks;
-	}
+    public List<Node> getContentBlocks(Node pollResponse) {
+        List<Node> contentBlocks = new ArrayList<Node>();
 
-	public List<Node> getStixPackages(List<Node> contentBlocks) {
-		List<Node> stixPackages = new ArrayList<Node>();
-		contentBlocks.stream().forEach(contentBlock -> {
-			List<Node> packages = getStixPackage(contentBlock);
-			packages.stream().forEach(stixPackage -> {
-				stixPackages.add(stixPackage);
-			});
-		});
-		log.info("Found {} STIX_Packages", stixPackages.size());
-		return stixPackages;
-	}
+        NodeList nodes;
+        if (pollResponse != null && pollResponse.hasChildNodes()) {
+            nodes = pollResponse.getChildNodes();
 
-	private List<Node> getStixPackage(Node contentBlock) {
-		List<Node> stixPackages = new ArrayList<Node>();
-		NodeList nodes = contentBlock.getChildNodes();
+            for (int i = 0; i < nodes.getLength(); i++) {
+                Node curNode = nodes.item(i);
+                if (curNode.getNodeType() == Node.TEXT_NODE) {
+                    continue;
+                }
+                String tag = removeXmlNs(curNode.getNodeName());
+                if (tag.contains("Content_Block")) {
+                    contentBlocks.add(curNode);
+                } else {
+                    log.debug("Found {}", tag);
+                }
+            }
+        } else {
+            log.info("No data from response.");
+        }
 
-		for (int i = 0; i < nodes.getLength(); i++) {
-			Node curNode = nodes.item(i);
-			if (curNode.getNodeType() == Node.TEXT_NODE) {
-				continue;
-			}
-			String tag = removeXmlNs(curNode.getNodeName());
-			if (tag.contains("Content")) {
-				NodeList packageNodes = curNode.getChildNodes();
-				for (int j = 0; j < packageNodes.getLength(); j++) {
-					Node stixPackage = packageNodes.item(j);
-					if (stixPackage.getNodeName().contains("STIX_Package")) {
-						stixPackages.add(stixPackage);
-					}
-				}
-			} else {
-				log.debug("Found {}", tag);
-			}
-		}
+        log.info("Found [{}] Content_Blocks", contentBlocks.size());
+        return contentBlocks;
+    }
 
-		return stixPackages;
-	}
+    public List<Node> getStixPackages(List<Node> contentBlocks) {
+        List<Node> stixPackages = new ArrayList<Node>();
+        contentBlocks.stream().forEach(contentBlock -> {
+            List<Node> packages = getStixPackage(contentBlock);
+            packages.stream().forEach(stixPackage -> {
+                stixPackages.add(stixPackage);
+            });
+        });
+        log.info("Found [{}] STIX_Packages", stixPackages.size());
+        return stixPackages;
+    }
 
-	public void processPollResponse(List<Node> stixPackages, String processType) {
-		log.info("Taxii11Response:processPollResponse:processType: {}", processType);
-		switch (processType) {
-		case "stixToMisp":
-			storeStixPackagesToMisp(stixPackages);
-			break;
-		case "xmlOutput":
-			storeStixPackagesToFile(stixPackages);
-			break;
-		default:
-			break;
-		}
-	}
+    private List<Node> getStixPackage(Node contentBlock) {
+        List<Node> stixPackages = new ArrayList<Node>();
+        NodeList nodes = contentBlock.getChildNodes();
 
-	private void storeStixPackagesToMisp(List<Node> stixPackages) {
-		stixPackages.stream().forEach(stixPackage -> {
-			String stixId = stixPackage.getAttributes().getNamedItem("id").getNodeValue();
-			//log.info("storing to MISP {}", stixId);
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node curNode = nodes.item(i);
+            if (curNode.getNodeType() == Node.TEXT_NODE) {
+                continue;
+            }
+            String tag = removeXmlNs(curNode.getNodeName());
+            if (tag.contains("Content")) {
+                NodeList packageNodes = curNode.getChildNodes();
+                for (int j = 0; j < packageNodes.getLength(); j++) {
+                    Node stixPackage = packageNodes.item(j);
+                    if (stixPackage.getNodeName().contains("STIX_Package")) {
+                        stixPackages.add(stixPackage);
+                    }
+                }
+            } else {
+                log.debug("Found {}", tag);
+            }
+        }
 
-			try {
-				sendToMisp(stixId, Taxii11Request.toXml(stixPackage));
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				//e.printStackTrace();
-				log.info("<<<<<<<<<<<<<<<<<<<<<<ERROR>>>>>>>>>>>>>>>>>>>>");
-			}
-		});
-	}
+        return stixPackages;
+    }
 
-	private HttpHeaders makeHeaders() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_XML);
-		headers.set("Content-type", "application/xml");
-		headers.set("Accept", "application/xml");
-		headers.set("Authorization", Config.getProperty("misp.authorization.key"));
-		return headers;
-	}
+    public void processPollResponse(List<Node> stixPackages, String processType) {
+        log.info("Taxii11Response:processPollResponse:processType: {}", processType);
+        switch (processType) {
+            case "stixToMisp":
+                storeStixPackagesToMisp(stixPackages);
+                break;
+            case "xmlOutput":
+                storeStixPackagesToFile(stixPackages);
+                break;
+            default:
+                break;
+        }
+    }
 
-	private void sendToMisp(String stixId, String stixPackageXml) throws IOException {
-		Tracker tracker = new Tracker();
-		tracker.setStixId(stixId);
+    private void storeStixPackagesToMisp(List<Node> stixPackages) {
+        stixPackages.stream().forEach(stixPackage -> {
+            String stixId = stixPackage.getAttributes().getNamedItem("id").getNodeValue();
+            try {
+                sendToMisp(stixId, Taxii11Request.toXml(stixPackage));
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+        });
+    }
 
-		if (mispTransHelper.exists(tracker)) {
-			log.debug("STIX Package exists: skip sending to MISP >>>>>>>>>>>>>>>>>> {}", stixId);
-			return;
-		}
+    private HttpHeaders makeHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_XML);
+        headers.set("Content-type", "application/xml");
+        headers.set("Accept", "application/xml");
+        headers.set("Authorization", Config.getProperty("misp.authorization.key"));
+        return headers;
+    }
 
-		log.info("Storing to MISP Server StixId: {}", stixId);
+    private void sendToMisp(String stixId, String stixPackageXml) throws IOException {
+        Tracker tracker = new Tracker();
+        tracker.setStixId(stixId);
 
-		RestTemplate restTemplate = new RestTemplate();
-		HttpEntity<String> entity = new HttpEntity<>(stixPackageXml, makeHeaders());
-		ResponseEntity<String> response;
+        if (mispTransHelper.exists(tracker)) {
+            log.debug("STIX Package exists: skip sending to MISP >>>>>>>>>>>>>>>>>> {}", stixId);
+            return;
+        }
 
-		String url = Config.getProperty("misptransclient.post.baseurl");
-		log.debug("Pacakge stixId : {} \nstix-body:\n{} \nSend To MISP Server URL:{}", stixId, stixPackageXml, url);
+        log.info("Storing to MISP Server StixId: {}", stixId);
 
-		try {
-			response = restTemplate.exchange(new URI(url), HttpMethod.POST, entity, String.class);
-			tracker.setStatusCode(response.getStatusCodeValue());
-			log.debug("Response Body :\n{}", response.getBody());
-			log.debug("Response Status Code: {}", response.getStatusCodeValue());
-			tracker.setEventId(getMispMispEventId(response.getBody()));
-			log.info("StixId: {} ------ Status Code: {} ", tracker.getStixId(), tracker.status_code);
-		} catch (Exception e) {
-			log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>> FIELD TO STORE TO MISP:{}, Status: {}", stixId, tracker.getStatusCode());
-		}
+        RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<String> entity = new HttpEntity<>(stixPackageXml, makeHeaders());
+        ResponseEntity<String> response;
 
-		mispTransHelper.serializeUser(tracker);
-	}
+        String url = Config.getProperty("misptransclient.post.baseurl");
+        log.debug("Pacakge stixId : {} \nstix-body:\n{} \nSend To MISP Server URL:{}", stixId, stixPackageXml, url);
 
-	private String getMispMispEventId(String body) {
-		JSONObject json = new JSONObject(body);
-		JSONObject event = json.getJSONObject("Event");
-		return String.valueOf(event.getInt("id"));
-	}
+        try {
+            response = restTemplate.exchange(new URI(url), HttpMethod.POST, entity, String.class);
+            tracker.setStatusCode(response.getStatusCodeValue());
+            log.debug("Response Body :\n{}", response.getBody());
+            log.debug("Response Status Code: {}", response.getStatusCodeValue());
+            tracker.setEventId(getMispMispEventId(response.getBody()));
+            log.info("StixId: {} ------ Status Code: {} ", tracker.getStixId(), tracker.status_code);
+        } catch (Exception e) {
+            log.info(">>>>>> FIELD TO STORE TO MISP:{}, Status: {}", stixId, tracker.getStatusCode());
+            log.info(">>>>>> Error: {}", e.getMessage());
+        }
 
-	private void storeStixPackagesToFile(List<Node> stixPackages) {
-		stixPackages.stream().forEach(stixPackage -> {
-			String stixId = stixPackage.getAttributes().getNamedItem("id").getNodeValue();
-			if (stixId.contains(":")) {
-				stixId = stixId.replaceAll(":", "-");
-			}
+        mispTransHelper.serializeUser(tracker);
+    }
 
-			log.info("storing to file {}", stixId);
+    private String getMispMispEventId(String body) {
+        JSONObject json = new JSONObject(body);
+        JSONObject event = json.getJSONObject("Event");
+        return String.valueOf(event.getInt("id"));
+    }
 
-			try {
-				storeToFile(stixId, Taxii11Request.toXml(stixPackage));
-			} catch (TransformerException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
-	}
+    private void storeStixPackagesToFile(List<Node> stixPackages) {
+        stixPackages.stream().forEach(stixPackage -> {
+            String stixId = stixPackage.getAttributes().getNamedItem("id").getNodeValue();
+            if (stixId.contains(":")) {
+                stixId = stixId.replaceAll(":", "-");
+            }
 
-	private void storeToFile(String stixId, String stixPackageXml) throws IOException {
-		log.debug("storing {} to file {}", stixPackageXml, stixId);
-		String fileName = Config.getOutputFilePath(stixId);
-		log.info("storing into file {}", fileName);
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File(fileName)))) {
-			bw.write(stixPackageXml);
-		}
-	}
+            log.info("storing to file {}", stixId);
+
+            try {
+                storeToFile(stixId, Taxii11Request.toXml(stixPackage));
+            } catch (TransformerException | IOException e) {
+                log.error(e.getMessage());
+            }
+        });
+    }
+
+    private void storeToFile(String stixId, String stixPackageXml) throws IOException {
+        log.debug("storing {} to file {}", stixPackageXml, stixId);
+        String fileName = Config.getOutputFilePath(stixId);
+        log.info("storing into file {}", fileName);
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File(fileName)))) {
+            bw.write(stixPackageXml);
+        }
+    }
 }

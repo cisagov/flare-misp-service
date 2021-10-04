@@ -12,7 +12,7 @@ public class Taxii11RequestSubmit {
     private static Logger log = LoggerFactory.getLogger(Taxii11RequestSubmit.class);
 
     public static ResponseEntity<String> postRequest(RestTemplate restTemplate, String url, HttpEntity<String> entity, Class<String> classType) throws URISyntaxException {
-        log.info("Posting content to >>>>>>>>>>> {}", url);
+        log.info("Posting content to >>>>>>>>>>> {} .... Waiting for Taxii Server to respond", url);
         URI uri = new URI(url);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, entity, String.class);
 

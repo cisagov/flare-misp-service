@@ -55,7 +55,12 @@ public class InitializeQuartzJob implements Job {
 				log.error("Received status code {}", response.getStatusCodeValue());
 			}
 
-			log.info("Initialize quartz received response body: {}", response.getBody());
+			if(response.getBody() == null) {
+                log.info("Initialize quartz received an empty response body. Will try again.");
+            }
+            else {
+                log.info("Initialize quartz received response body: {}", response.getBody());
+            }
 
 		} catch (URISyntaxException e) {
 			log.error("Error: Malformed URL: {} {}", urlStr, e.getMessage());

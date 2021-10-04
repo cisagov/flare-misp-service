@@ -7,7 +7,9 @@
 /gradlew.bat
 /manifest.yml
 /misp2.project
+.idea
 
+logs/*
 
 #All Deploy folder files except the tar
 deploy/*
