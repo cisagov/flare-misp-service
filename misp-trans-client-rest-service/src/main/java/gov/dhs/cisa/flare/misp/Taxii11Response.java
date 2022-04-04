@@ -183,12 +183,25 @@ public class Taxii11Response {
         log.debug("Pacakge stixId : {} \nstix-body:\n{} \nSend To MISP Server URL:{}", stixId, stixPackageXml, url);
 
         try {
-            response = restTemplate.exchange(new URI(url), HttpMethod.POST, entity, String.class);
-            tracker.setStatusCode(response.getStatusCodeValue());
-            log.debug("Response Body :\n{}", response.getBody());
-            log.debug("Response Status Code: {}", response.getStatusCodeValue());
-            tracker.setEventId(getMispMispEventId(response.getBody()));
-            log.info("StixId: {} ------ Status Code: {} ", tracker.getStixId(), tracker.status_code);
+            synchronized (this) {
+                response = restTemplate.exchange(new URI(url + "upload_stix"), HttpMethod.POST, entity, String.class);
+                int rcode = response.getStatusCodeValue();
+                if (rcode == 200) {
+                    tracker.setStatusCode(response.getStatusCodeValue());
+                    log.debug("Response Body :\n{}", response.getBody());
+                    log.debug("Response Status Code: {}", response.getStatusCodeValue());
+                    tracker.setEventId(getMispMispEventId(response.getBody()));
+
+                    String eid = tracker.getEventId();
+                    log.info("StixId: {} ------ Status Code: {} ", tracker.getStixId(), tracker.status_code);
+
+                    String published = Config.getProperty("stixtransclient.misp.published");
+                    if (published != null && published.equalsIgnoreCase("true")) {
+                        response = restTemplate.exchange(new URI(url + "publish/" + eid), HttpMethod.POST, entity, String.class);
+                        log.info("Event ID: {} ------ Status Code: {}", eid, response.getStatusCode());
+                    }
+                }
+            }
         } catch (Exception e) {
             log.info(">>>>>> FIELD TO STORE TO MISP:{}, Status: {}", stixId, tracker.getStatusCode());
             log.info(">>>>>> Error: {}", e.getMessage());

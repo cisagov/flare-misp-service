@@ -3,6 +3,7 @@
 *.iws
 *.iml
 *.ipr
+.dccache
 
 ### VS Code ###
 .vscode/
