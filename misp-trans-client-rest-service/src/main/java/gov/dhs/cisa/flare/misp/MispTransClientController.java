@@ -116,7 +116,7 @@ public class MispTransClientController {
             Node pollResponse = taxii11Response.getPollRequest(doc);
             List<Node> contentBlocks = taxii11Response.getContentBlocks(pollResponse);
             List<Node> stixPackages = taxii11Response.getStixPackages(contentBlocks);
-
+            
             taxii11Response.processPollResponse(stixPackages, processType);
             return new MispTransClient(counter.incrementAndGet(), String.valueOf(response.getStatusCode()), null,
                 processType, collectionName, dateStart.toString(), dateStop.toString());
