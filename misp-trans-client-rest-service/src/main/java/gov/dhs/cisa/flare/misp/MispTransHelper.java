@@ -34,17 +34,18 @@ public class MispTransHelper {
 		if (!file.exists()) {
 			logger.info("Creating a new Avro file.....{}", file.getAbsolutePath());
 			dataFileWriter.create(schema, file);
-		} else {
-			DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>(schema);
-			DataFileReader<GenericRecord> dataFileReader = new DataFileReader<GenericRecord>(file, datumReader);
-			dataFileReader.forEach(rec -> {
-				Tracker tracker = deserializeTracker(rec);
-				logger.debug("tracker: stix_id :{}", tracker.getStixId());
-				trackers.put(tracker.getStixId(), tracker);
-			});
-			dataFileReader.close();
-			dataFileWriter.appendTo(file);
-		}
+		} 
+
+		DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>(schema);
+		DataFileReader<GenericRecord> dataFileReader = new DataFileReader<GenericRecord>(file, datumReader);
+		dataFileReader.forEach(rec -> {
+			Tracker tracker = deserializeTracker(rec);
+			logger.debug("tracker: stix_id :{}", tracker.getStixId());
+			trackers.put(tracker.getStixId(), tracker);
+		});
+		dataFileReader.close();
+		dataFileWriter.appendTo(file);
+
 	}
 
 	public Tracker deserializeTracker(GenericRecord rec) {
