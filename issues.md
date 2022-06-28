@@ -89,8 +89,3 @@ may lead to unintended behavior.
 The web-application does not define an Expect-CT header, leaving it more vulnerable to attacks.
 ```
 
-Cyber Threat Management @ Raytheo Technologies, Monday 1 March 2021.
-
-
-## Mitigation Plan:
-We plan to resolve these issues in our next development increment by June 30 2021.
