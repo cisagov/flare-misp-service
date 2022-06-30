@@ -1,4 +1,6 @@
-This application is a service that transfers STIX Events from a STIX Server to a MISP Server.
+This application is a service that transfers STIX Events from a STIX 1.1.1 Server to a MISP Server.
+This service is provided to enable the specific use case of retrieving AIS 1.0 data (in STIX 1.1.1 XML format) from AIS1.0 TAXII server and loading the content into a MISP Server.
+This service does not support AIS 2.0 data (in STIX 2.1 JSON format). For more information about DHS and establishing access to the AIS service, please see https://us-cert.gov/ais.
 
 To generate encrypted password:
 

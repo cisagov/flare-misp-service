@@ -1,10 +1,10 @@
 # FLARE MISP Service
 
+This service is provided to enable the specific use case of retrieving AIS 1.0 data (in STIX 1.1.1 XML format) from AIS1.0 TAXII server and loading the content into a MISP Server.
 
-This service is provided to enable the specific use case of retrieving AIS data (in STIX 1.1.1 format) from AIS and loading the content in a MISP Server.  For more information about DHS and establishing access to the AIS service, please see https://us-cert.gov/ais.
+This service does not support AIS 2.0 data (in STIX 2.1 JSON format). For more information about DHS and establishing access to the AIS service, please see https://us-cert.gov/ais.
 
-The Flare MISP Service has been designed to provide a mechanism to routinely poll content from a TAXII server and make it available in a MISP server.  This service provides transformation of STIX content to MISP and to provide the TAXII server functionality.  It can be configured to pull from a TAXII server and convert the STIX files into MISP format or just download the STIX as xml at regular intervals. 
-
+The Flare MISP Service has been designed to provide a mechanism to routinely poll content from a TAXII server and make it available in a MISP server. This service provides transformation of STIX content to MISP and to provide the TAXII server functionality. It can be configured to pull from a TAXII server and convert the STIX files into MISP format or just download the STIX as XML at regular intervals.
 
 ## Table of Contents
 1. [About FLARE MISP Service](#about)
