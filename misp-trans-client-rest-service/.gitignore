@@ -9,7 +9,7 @@
 /misp2.project
 .idea
 .dccache
-/.settings/
+.settings
 /.idea/
 /.checkmate/
 logs/*

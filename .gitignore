@@ -4,6 +4,8 @@
 *.iml
 *.ipr
 .dccache
-
+.settings
 ### VS Code ###
 .vscode/
+.settings/
+
