@@ -62,7 +62,7 @@ public class SSLHostnameVerification {
 
 		SSLContext sc = null;
 		try {
-			sc = SSLContext.getInstance("TLSv1.2");
+			sc = SSLContext.getInstance("SSL");
 			sc.init(null, trustAllCerts, new java.security.SecureRandom());
 		} catch (KeyManagementException | NoSuchAlgorithmException e) {
 			e.printStackTrace();
