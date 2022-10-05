@@ -10,7 +10,6 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 
-
 public class SSLHostnameVerification {
 
 	private static final Logger log = LoggerFactory.getLogger(SSLHostnameVerification.class);
@@ -18,14 +17,14 @@ public class SSLHostnameVerification {
 	@Value("${server.ssl.hostname.verify}")
 	private static boolean hostnameVerify;
 
-	public static void executeConfigration () {
+	public static void executeConfigration() {
 
 		if (hostnameVerify) {
 			log.info("SSL Hostname Verification On.");
 			return;
 		}
 
-		TrustManager[] trustAllCerts = new TrustManager[]{new X509ExtendedTrustManager() {
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509ExtendedTrustManager() {
 			@Override
 			public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
 
@@ -59,7 +58,7 @@ public class SSLHostnameVerification {
 			public void checkServerTrusted(X509Certificate[] certs, String authType) {
 			}
 
-		}};
+		} };
 
 		SSLContext sc = null;
 		try {

@@ -1,0 +1,11 @@
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+.dccache
+.settings
+### VS Code ###
+.vscode/
+.settings/
+

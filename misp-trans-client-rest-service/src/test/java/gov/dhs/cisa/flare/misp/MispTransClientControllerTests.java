@@ -32,7 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-//@WebMvcTest
+// @WebMvcTest
 public class MispTransClientControllerTests {
 
     @Autowired
@@ -43,17 +43,17 @@ public class MispTransClientControllerTests {
     public void noParamEventShouldRunDefaultProcess() throws Exception {
 
         mockMvc.perform(get("/misptransclient")).andDo(print()).andExpect(status().isOk())
-        	.andExpect(jsonPath("$.status").value("Success"));
+                .andExpect(jsonPath("$.status").value("Success"));
     }
- 
+
     @Ignore
     @Test
     public void stixToMispParamEventShouldRunSticToMispProcess() throws Exception {
 
         mockMvc.perform(get("/misptransclient?processType=stixToMisp")).andDo(print()).andExpect(status().isOk())
-        	.andExpect(jsonPath("$.status").value("Success"));
+                .andExpect(jsonPath("$.status").value("Success"));
     }
-    
+
     @Ignore
     @Test
     public void xmlOutputParamEventShouldRunSticToMispProcess() throws Exception {

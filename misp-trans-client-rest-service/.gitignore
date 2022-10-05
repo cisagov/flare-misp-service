@@ -8,9 +8,13 @@
 /manifest.yml
 /misp2.project
 .idea
-
+.dccache
+.settings
+/.idea/
+/.checkmate/
 logs/*
 
 #All Deploy folder files except the tar
 deploy/*
 !deploy/FLAREmispService.tar
+

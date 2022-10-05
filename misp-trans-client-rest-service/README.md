@@ -41,7 +41,7 @@ This service was constructed based on an example which can be found at this URL:
 
 https://spring.io/guides/gs/rest-service/
 
-Build an executable JAR
+Build an executable JAR:
 
 You can run the application from the command line with Gradle or Maven. 
 Or you can build a single executable JAR file that contains all the necessary 
@@ -61,7 +61,7 @@ mvn clean package.
 
 Then you can run the JAR file:
 
-java -jar target/mtc-rest-service-0.1.0.jar
+java -jar target/mtc-rest-service-2.5.1.jar
 
 
 ** packageDeployment.sh **

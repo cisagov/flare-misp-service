@@ -57,7 +57,7 @@ public class Taxii11Response {
             Node curNode = nodes.item(i);
             String tag = removeXmlNs(curNode.getNodeName());
             if (tag.contains("Poll_Response")) {
-                log.info("Found Poll_Response.");
+                log.info("Found Poll Response..........");
                 return curNode;
             }
         }
@@ -88,7 +88,7 @@ public class Taxii11Response {
             log.info("No data from response.");
         }
 
-        log.info("Found [{}] Content_Blocks", contentBlocks.size());
+        log.debug("Found [{}] Content_Blocks", contentBlocks.size());
         return contentBlocks;
     }
 
@@ -100,7 +100,8 @@ public class Taxii11Response {
                 stixPackages.add(stixPackage);
             });
         });
-        log.info("Found [{}] STIX_Packages", stixPackages.size());
+
+        log.info("Found: [{}] STIX Packages", stixPackages.size());
         return stixPackages;
     }
 
@@ -183,12 +184,27 @@ public class Taxii11Response {
         log.debug("Pacakge stixId : {} \nstix-body:\n{} \nSend To MISP Server URL:{}", stixId, stixPackageXml, url);
 
         try {
-            response = restTemplate.exchange(new URI(url), HttpMethod.POST, entity, String.class);
-            tracker.setStatusCode(response.getStatusCodeValue());
-            log.debug("Response Body :\n{}", response.getBody());
-            log.debug("Response Status Code: {}", response.getStatusCodeValue());
-            tracker.setEventId(getMispMispEventId(response.getBody()));
-            log.info("StixId: {} ------ Status Code: {} ", tracker.getStixId(), tracker.status_code);
+            synchronized (this) {
+                response = restTemplate.exchange(new URI(url + "upload_stix"), HttpMethod.POST, entity, String.class);
+                int rcode = response.getStatusCodeValue();
+                if (rcode == 200) {
+                    tracker.setStatusCode(response.getStatusCodeValue());
+                    log.info("Response Body :\n{}", response.getBody());
+                    log.info("Response Status Code: {}", response.getStatusCodeValue());
+                    tracker.setEventId(getMispMispEventId(response.getBody()));
+
+                    String eid = tracker.getEventId();
+                    log.info("StixId: {} ------ Status Code: {} ", tracker.getStixId(), tracker.status_code);
+
+                    Thread.sleep(10000);
+                    
+                    String published = Config.getProperty("stixtransclient.misp.published");
+                    if (published != null && published.equalsIgnoreCase("true")) {
+                        response = restTemplate.exchange(new URI(url + "publish/" + eid), HttpMethod.POST, entity, String.class);
+                        log.info("Event ID: {} ------ Status Code: {}", eid, response.getStatusCode());
+                    }
+                }
+            }
         } catch (Exception e) {
             log.info(">>>>>> FIELD TO STORE TO MISP:{}, Status: {}", stixId, tracker.getStatusCode());
             log.info(">>>>>> Error: {}", e.getMessage());

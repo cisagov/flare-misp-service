@@ -1,7 +1,6 @@
 package gov.dhs.cisa.flare.misp;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
@@ -12,11 +11,8 @@ import java.security.cert.CertificateException;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-
-import org.apache.http.conn.ConnectTimeoutException;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
@@ -120,7 +116,7 @@ public class MispTransClientController {
             Node pollResponse = taxii11Response.getPollRequest(doc);
             List<Node> contentBlocks = taxii11Response.getContentBlocks(pollResponse);
             List<Node> stixPackages = taxii11Response.getStixPackages(contentBlocks);
-
+            
             taxii11Response.processPollResponse(stixPackages, processType);
             return new MispTransClient(counter.incrementAndGet(), String.valueOf(response.getStatusCode()), null,
                 processType, collectionName, dateStart.toString(), dateStop.toString());

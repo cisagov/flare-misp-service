@@ -114,8 +114,12 @@ Result:
 URL: http://<MISP URL>/users/login
 User:  admin@admin.test
 
-Note: The FLARE-MISP-SERVICE software component does not modifies the content of the STIX files from 
-      a TAXII 1.1.1 server before forwarding (via an HTTP Post) to a MISP Server and does not set any publication status in MISP Server.
+# <a name="Publication"></a> Publication
+The FLARE-MISP-SERVICE does support publication capability where the user can enable/disable publication of STIX data. See config.properties to change the published flag status.
+	
+# <a name="Notes"></a> Notes
+The FLARE-MISP-SERVICE software component does not modifies the content of the STIX files from a TAXII 1.1.1 server before forwarding (via an HTTP Post) to a MISP Server.
+
 
 # <a name="packaging"></a>To build the tarball:
 

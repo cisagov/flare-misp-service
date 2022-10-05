@@ -10,6 +10,7 @@ import org.junit.Test;
 public class Taxii11RequestTest {
 	@Test
 	public void testGetCollectionsRequest() throws ParserConfigurationException, TransformerException {
-		//String request = Taxii11Request.makeBody(Instant.EPOCH, Instant.now(), "test_coll", false, "FULL");
+		// String request = Taxii11Request.makeBody(Instant.EPOCH, Instant.now(),
+		// "test_coll", false, "FULL");
 	}
 }
